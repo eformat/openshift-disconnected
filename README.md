@@ -571,7 +571,7 @@ Create manifests
 ./openshift-install create manifests --dir=cluster-foo
 ```
 
-!! Make any necessary csutomisations to manifestes !!
+!! Make any necessary customisations to manifestes !!
 
 Locate the mastersSchedulable parameter and set its value to False.
 ```
