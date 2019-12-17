@@ -189,7 +189,7 @@ yum -y install docker
 systemctl enable docker
 systemctl start docker
 systemctl is-active docker
-docker login -u="redhat+quay" -p="O81WSHRSJR14UAZBK54GQHJS0P1V4CLWAJV1X2C4SD7KO59CQ9N3RE12612XU1HR" quay.io
+docker login -u="redhat+quay" -p="O81..." quay.io
 ```
 
 Open ports in firewall
