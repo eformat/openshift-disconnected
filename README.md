@@ -555,8 +555,8 @@ networking:
   - 172.30.0.0/16
 platform:
   none: {}
-pullSecret: '{"auths":{"bastion.hosts.eformat.me:443":{"auth":"b3BlbnNoaWZ0K2RvY2tlcjpGNEdaT0dVSlFHUUwyUjBFOVZHT0dXWkdRSlIzMkpQTVJJSkEwVzdNR1FEMkxSU05URDM5QlVOQlJYWVpZODRT","email":""},"bastion.hosts.eformat.me":{"auth":"b3BlbnNoaWZ0K2RvY2tlcjpGNEdaT0dVSlFHUUwyUjBFOVZHT0dXWkdRSlIzMkpQTVJJSkEwVzdNR1FEMkxSU05URDM5QlVOQlJYWVpZODRT","email":""}}}'
-sshKey: 'ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAACAQCc/b41rG07PeP0VQyyvTb38xd/OkLywJ7iXDP7jIWyjNcnv6l5eLu1FxNFz6dtw48uh2uJF2HWtEJoMLlW5moOy5WXjgqBQs30Dsy3wYjTb3XK8LEdgDXhq+aBLJ/1s0vGd5KCz1+GSksnVkUKGeOEzAZ+4DTRqnloQhWziberDfySAwSB6HHxMJUQffeHyLHd0AlPsDPxPEfnST5mrOGSEGDLU04NzRSFMWYhwkKBAs4YykEsOExx/zfqSrLONTDulEuR2hRYGEpw0F9wWE39joGjOHIeNx6aOVO+hDisk3g/pBrKf0FZvAVoiA9rbVcX6pajLhjdBaveLQJQXluCEJvqcNICU1yBoILRt4ly3QdpsHhlgqdbZ4LhiYk7AvSy++g5fIfmTfWqWf1a+cwO/R5O/Gb98ZKew57/hXB0d/NNjKY9Ij25g0HDkuxkSytUtaM7dJVovxO4quD8KbnyikjDXMvphZuFKc7UEn0IBuSz2DV941Nl/klFUyxLve2KDL3ivdXyX2z/UsjvZGgz0HRzp+HimOsPU3/wOCSfeRtYltpeXNGtRHqQc8roqLNlzWRfTRBOZkCvAElRlzjkDM8k9u5MySTpu2+VGsjksvVaYUWMAkSjKyjbPKqlFnmBqr6MPL58mSh/yzPee1mGvhfA/WrfSSIgVyMRahSTTQ== mike@hades'
+pullSecret: '{"auths":{"bastion.hosts.eformat.me:443":{"auth":"b3Bl...","email":""},"bastion.hosts.eformat.me":{"auth":"b3Bl...","email":""}}}'
+sshKey: 'ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAA ...'
 EOF
 ```
 
