@@ -831,7 +831,7 @@ asroot restorecon -rv  /var/lib/libvirt/images/rhcos-4.2.0-x86_64-installer.iso
 
 Create an lvm thin pool (or use pre-existing)
 ```
-lvcreate --size 500G --type thin-pool --thinpool thin_pool 
+lvcreate --size 500G --type thin-pool --thinpool thin_pool2
 ```
 
 Create servers
