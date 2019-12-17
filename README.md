@@ -391,18 +391,18 @@ systemctl restart docker
 Add auth sections (bastion.hosts.eformat.me:443, bastion.hosts.eformat.me) to ~/.docker/config.json using openshift+docker robot account (get auth section from quay)
 ```
     "bastion.hosts.eformat.me:443": {
-      "auth": "b3BlbnNoaWZ0K2RvY2tlcjpGNEdaT0dVSlFHUUwyUjBFOVZHT0dXWkdRSlIzMkpQTVJJSkEwVzdNR1FEMkxSU05URDM5QlVOQlJYWVpZODRT",
+      "auth": "b3Blb...",
       "email": ""
     },
     "bastion.hosts.eformat.me": {
-      "auth": "b3BlbnNoaWZ0K2RvY2tlcjpGNEdaT0dVSlFHUUwyUjBFOVZHT0dXWkdRSlIzMkpQTVJJSkEwVzdNR1FEMkxSU05URDM5QlVOQlJYWVpZODRT",
+      "auth": "b3Bl...",
       "email": ""
     }
 ```
 
 Login (get auth from quay)
 ```
-docker login -u="openshift+docker" -p="F4GZOGUJQGQL2R0E9VGOGWZGQJR32JPMRIJA0W7MGQD2LRSNTD39BUNBRXYZY84S" bastion.hosts.eformat.me:443
+docker login -u="openshift+docker" -p="F4GZ..." bastion.hosts.eformat.me:443
 ```
 
 See other sections of doc to:
