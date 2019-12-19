@@ -2,13 +2,18 @@
 
 Steps
 
-[1](#quay) `Install quay on a bastion host` - https://access.redhat.com/documentation/en-us/red_hat_quay/3/html-single/deploy_red_hat_quay_-_basic/index#preparing_for_red_hat_quay_basic
+[1](#quay) `Install quay on a bastion host`
+- https://access.redhat.com/documentation/en-us/red_hat_quay/3/html-single/deploy_red_hat_quay_-_basic/index#preparing_for_red_hat_quay_basic
 
-[2](#create-mirror-registry) `Create mirror registry and populate off line repos` - https://docs.openshift.com/container-platform/4.2/installing/installing_restricted_networks/installing-restricted-networks-preparations.html
+[2](#create-mirror-registry) `Create mirror registry and populate off line repos`
+- https://docs.openshift.com/container-platform/4.2/installing/installing_restricted_networks/installing-restricted-networks-preparations.html
 
-[3](#openshift-install-disconnected) `Install openshift disconnected` - https://docs.openshift.com/container-platform/4.2/installing/installing_restricted_networks/installing-restricted-networks-bare-metal.html#installing-restricted-networks-bare-metal
+[3](#openshift-install-disconnected) `Install openshift disconnected`
+- https://docs.openshift.com/container-platform/4.2/installing/installing_restricted_networks/installing-restricted-networks-bare-metal.html#installing-restricted-networks-bare-metal
 
-[4](#other-images) `Install images, olm, samples disconnected` - https://docs.openshift.com/container-platform/4.2/operators/olm-restricted-networks.html
+[4](#other-images) `Install images, olm, samples disconnected`
+- https://docs.openshift.com/container-platform/4.2/openshift_images/image-configuration.html
+- https://docs.openshift.com/container-platform/4.2/operators/olm-restricted-networks.html
 
 [5](#) `Update cluster versions disconnected`
 
