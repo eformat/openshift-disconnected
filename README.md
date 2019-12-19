@@ -282,7 +282,7 @@ QUIT
 Configuring Quay
 ```
 export QUAY_PASSWORD=<password>
-docker run --name=quay-config --privileged=true -p 8443:8443 -d quay.io/redhat/quay:v3.1.3 config $QUAY_PASSWORD
+docker run --name=quay-config --privileged=true -p 8443:8443 -d quay.io/redhat/quay:v3.2.0 config $QUAY_PASSWORD
 ```
 
 Open browser and login
@@ -370,7 +370,7 @@ docker run --restart=always -p 443:8443 -p 80:8080 \
    --privileged=true \
    -v /mnt/quay/config:/conf/stack:Z \
    -v /mnt/quay/storage:/datastorage:Z \
-   -d quay.io/redhat/quay:v3.1.3
+   -d quay.io/redhat/quay:v3.2.0
 
 docker logs quay -f
 ```
@@ -420,6 +420,42 @@ docker login -u="openshift+docker" -p="F4GZ..." bastion.hosts.eformat.me:443
 See other sections of doc to:
 - Add Clair image scanning to Red Hat Quay
 - Add repository mirroring Red Hat Quay
+
+We want to configure quay to be able to mirror other repositories. Start a mirror worker
+```
+docker run --restart=always \
+  --name mirroring-worker \
+  -v /mnt/quay/config:/conf/stack:Z \
+  -d quay.io/redhat/quay:v3.2.0 \
+  repomirror
+
+docker logs -f mirroring-worker
+```
+
+Login to config tool
+```
+https://localhost:8443
+quayconfig / $QUAY_PASSWORD
+```
+
+Upload tar.gz configuration file generated above
+```
+Enable repository mirroring
+Select HTTPS and cert verification
+Save configuration
+```
+
+Download config, copy, untar, restart quay
+```
+
+Stop config, Copy Config files
+```
+docker stop quay-config
+scp /tmp/quay-config.tar.gz bastion:/mnt/quay/config/
+ssh bastion
+cd /mnt/quay/config/
+tar xvf quay-config.tar.gz
+```
 
 ### Create Mirror Registry
 
