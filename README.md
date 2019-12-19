@@ -1071,22 +1071,9 @@ oc expose svc/welcome
 
 To run `oc debug node/<node name>` we need the support tools images.
 
-Update trust for quay so we can use skopeo
-```
-sudo cp certs/tls/certs/cacert.crt /etc/pki/ca-trust/source/anchors/skopeo-openshift-ca.crt
-sudo update-ca-trust extract
-```
-
-Get latest digest
-```
-skopeo inspect docker://registry.redhat.io/rhel7/support-tools:latest
-```
-
 Copy image
 ```
-skopeo copy \
-   docker://registry.redhat.io/rhel7/support-tools@sha256:459f46f24fe92c5495f772c498d5b2c71f1d68ac23929dfb2c2869a35d0b5807 \
-   docker://bastion.hosts.eformat.me:443/openshift/support-tools
+oc image mirror registry.redhat.io/rhel7/support-tools:latest  bastion.hosts.eformat.me:443/openshift/support-tools:latest
 ```
 
 Create an ImageContentSourcePolicy
