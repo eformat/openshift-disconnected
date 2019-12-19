@@ -417,10 +417,6 @@ Login (get auth from quay)
 docker login -u="openshift+docker" -p="F4GZ..." bastion.hosts.eformat.me:443
 ```
 
-See other sections of doc to:
-- Add Clair image scanning to Red Hat Quay
-- Add repository mirroring Red Hat Quay
-
 We want to configure quay to be able to mirror other repositories. Start a mirror worker
 ```
 docker run --restart=always \
@@ -438,14 +434,11 @@ https://localhost:8443
 quayconfig / $QUAY_PASSWORD
 ```
 
-Upload tar.gz configuration file generated above
+Upload cconfiguration file generated above. Enable mirroring, download config
 ```
 Enable repository mirroring
 Select HTTPS and cert verification
 Save configuration
-```
-
-Download config, copy, untar, restart quay
 ```
 
 Stop config, Copy Config files
@@ -456,6 +449,15 @@ ssh bastion
 cd /mnt/quay/config/
 tar xvf quay-config.tar.gz
 ```
+
+Restart quay
+```
+docker restart quay
+```
+
+See other sections of doc to:
+- Add Clair image scanning to Red Hat Quay
+
 
 ### Create Mirror Registry
 
