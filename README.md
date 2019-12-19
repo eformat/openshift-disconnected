@@ -3,10 +3,15 @@
 Steps
 
 [1](#quay) install quay on a bastion host - https://access.redhat.com/documentation/en-us/red_hat_quay/3/html-single/deploy_red_hat_quay_-_basic/index#preparing_for_red_hat_quay_basic
-2. create mirror registry and populate off line repos - https://docs.openshift.com/container-platform/4.2/installing/installing_restricted_networks/installing-restricted-networks-preparations.html
-3. install openshift disconnected - https://docs.openshift.com/container-platform/4.2/installing/installing_restricted_networks/installing-restricted-networks-bare-metal.html#installing-restricted-networks-bare-metal
-5. install olm, samples disconnected - https://docs.openshift.com/container-platform/4.2/operators/olm-restricted-networks.html
-6. update cluster versions disconnected
+
+[2](#create-mirror-registry) create mirror registry and populate off line repos - https://docs.openshift.com/container-platform/4.2/installing/installing_restricted_networks/installing-restricted-networks-preparations.html
+
+[3](#openshift-install-disconnected) install openshift disconnected - https://docs.openshift.com/container-platform/4.2/installing/installing_restricted_networks/installing-restricted-networks-bare-metal.html#installing-restricted-networks-bare-metal
+
+[4](#other-images) install olm, samples disconnected - https://docs.openshift.com/container-platform/4.2/operators/olm-restricted-networks.html
+
+[5](#) update cluster versions disconnected
+
 
 ### Quay
 
@@ -991,7 +996,7 @@ $ oc get clusterversion -o json|jq ".items[0].status.history"
 
 ### Other Images
 
-#### Generat Application Images
+#### General Application Images
 
 https://docs.openshift.com/container-platform/4.2/openshift_images/image-configuration.html
 
