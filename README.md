@@ -2,7 +2,7 @@
 
 Steps
 
-[You can use numbers for reference-style link definitions][1]
+![You can use numbers for reference-style link definitions][1]
 
 1. install quay on a bastion host - https://access.redhat.com/documentation/en-us/red_hat_quay/3/html-single/deploy_red_hat_quay_-_basic/index#preparing_for_red_hat_quay_basic
 2. create mirror registry and populate off line repos - https://docs.openshift.com/container-platform/4.2/installing/installing_restricted_networks/installing-restricted-networks-preparations.html
@@ -10,7 +10,7 @@ Steps
 5. install olm, samples disconnected - https://docs.openshift.com/container-platform/4.2/operators/olm-restricted-networks.html
 6. update cluster versions disconnected
 
-[1] ### Quay
+### Quay[1]
 
 All steps done as root on bastion vm and bare metal host
 
