@@ -1090,12 +1090,12 @@ spec:
 EOF
 ```
 
+Test
 ```
+# works
 oc debug node/w1 --image=bastion.hosts.eformat.me:443/openshift/support-tools
-```
 
-```
-# FIXME - these still fail ?? WHY .. not using mirror? -- https://bugzilla.redhat.com/show_bug.cgi?id=1728135
+# FIXME - these still fail ?? WHY .. should be using mirror? -- https://bugzilla.redhat.com/show_bug.cgi?id=1728135
 oc debug node/w1 
 oc debug node/w1 --image=registry.redhat.io/rhel7/support-tools@sha256:459f46f24fe92c5495f772c498d5b2c71f1d68ac23929dfb2c2869a35d0b5807
 ```
