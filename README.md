@@ -171,7 +171,7 @@ for vm in bastion; do virsh destroy $vm; done; for vm in bastion; do virsh undef
 Update cpu for max performance
 ```
 virsh edit bastion
-<cpu mode='host-passthrough' check='none'/>
+  <cpu mode='host-passthrough' check='none'/>
 ```
 
 Subscribe VM
@@ -595,10 +595,10 @@ systemctl start httpd
 
 Upload files to web server and check it works (get rhcos image and installer from https://mirror.openshift.com/pub/openshift-v4/dependencies/rhcos/4.2/latest/)
 ```
-asroot cp cluster-foo/*.ign /var/www/html/
+sudo cp cluster-foo/*.ign /var/www/html/
 curl http://127.0.0.1:8080/bootstrap.ign
-asroot mv /home/mike/ocp4/rhcos-4.2.0-x86_64-metal-bios.raw.gz /var/www/html/rhcos-4.2.0-x86_64-metal-bios.raw.gz
-asroot chcon -R -t httpd_sys_content_t /var/www/html/
+sudo mv /home/mike/ocp4/rhcos-4.2.0-x86_64-metal-bios.raw.gz /var/www/html/rhcos-4.2.0-x86_64-metal-bios.raw.gz
+sudo chcon -R -t httpd_sys_content_t /var/www/html/
 ```
 
 Create a virtual network for openshift
@@ -824,9 +824,9 @@ etcd-2    IN  CNAME m3.hosts.eformat.me.
 
 Move the installer
 ```
-asroot mv rhcos-4.2.0-x86_64-installer.iso /var/lib/libvirt/images
-asroot chown qemu:qemu /var/lib/libvirt/images/rhcos-4.2.0-x86_64-installer.iso
-asroot restorecon -rv  /var/lib/libvirt/images/rhcos-4.2.0-x86_64-installer.iso
+sudo mv rhcos-4.2.0-x86_64-installer.iso /var/lib/libvirt/images
+sudo chown qemu:qemu /var/lib/libvirt/images/rhcos-4.2.0-x86_64-installer.iso
+sudo restorecon -rv  /var/lib/libvirt/images/rhcos-4.2.0-x86_64-installer.iso
 ```
 
 Create an lvm thin pool (or use pre-existing)
@@ -848,7 +848,7 @@ args+='coreos.inst.install_dev=vda '
 args+='coreos.inst.image_url=http://10.0.0.184:8080/rhcos-4.2.0-x86_64-metal-bios.raw.gz '
 args+='coreos.inst.ignition_url=http://10.0.0.184:8080/bootstrap.ign '
 
-virt-install -v --connect=qemu:///system --name bootstrap --ram 12336 --vcpus 4 --hvm --disk path=/dev/fedora/bootstrap -w network=ocp4,model=virtio,mac=52:54:00:b3:7d:1a --noautoconsole -l /var/lib/libvirt/images/rhcos-4.2.0-x86_64-installer.iso,kernel=images/vmlinuz,initrd=images/initramfs.img --extra-args="${args}" --os-variant=rhel7.0
+virt-install -v --connect=qemu:///system --name bootstrap --ram 10240 --vcpus 4 --hvm --disk path=/dev/fedora/bootstrap -w network=ocp4,model=virtio,mac=52:54:00:b3:7d:1a --noautoconsole -l /var/lib/libvirt/images/rhcos-4.2.0-x86_64-installer.iso,kernel=images/vmlinuz,initrd=images/initramfs.img --extra-args="${args}" --os-variant=rhel7.0
 ```
 
 Masters
@@ -859,11 +859,11 @@ args+='coreos.inst.install_dev=vda '
 args+='coreos.inst.image_url=http://10.0.0.184:8080/rhcos-4.2.0-x86_64-metal-bios.raw.gz '
 args+='coreos.inst.ignition_url=http://10.0.0.184:8080/master.ign '
 
-virt-install -v --connect=qemu:///system --name m1 --ram 12336 --vcpus 4 --hvm --disk path=/dev/fedora/m1 -w network=ocp4,model=virtio,mac=52:54:00:b3:7d:1b --noautoconsole -l /var/lib/libvirt/images/rhcos-4.2.0-x86_64-installer.iso,kernel=images/vmlinuz,initrd=images/initramfs.img --extra-args="${args}" --os-variant=rhel7.0
+virt-install -v --connect=qemu:///system --name m1 --ram 10240 --vcpus 4 --hvm --disk path=/dev/fedora/m1 -w network=ocp4,model=virtio,mac=52:54:00:b3:7d:1b --noautoconsole -l /var/lib/libvirt/images/rhcos-4.2.0-x86_64-installer.iso,kernel=images/vmlinuz,initrd=images/initramfs.img --extra-args="${args}" --os-variant=rhel7.0
 
-virt-install -v --connect=qemu:///system --name m2 --ram 12336 --vcpus 4 --hvm --disk path=/dev/fedora/m2 -w network=ocp4,model=virtio,mac=52:54:00:b3:7d:1c --noautoconsole -l /var/lib/libvirt/images/rhcos-4.2.0-x86_64-installer.iso,kernel=images/vmlinuz,initrd=images/initramfs.img --extra-args="${args}" --os-variant=rhel7.0
+virt-install -v --connect=qemu:///system --name m2 --ram 10240 --vcpus 4 --hvm --disk path=/dev/fedora/m2 -w network=ocp4,model=virtio,mac=52:54:00:b3:7d:1c --noautoconsole -l /var/lib/libvirt/images/rhcos-4.2.0-x86_64-installer.iso,kernel=images/vmlinuz,initrd=images/initramfs.img --extra-args="${args}" --os-variant=rhel7.0
 
-virt-install -v --connect=qemu:///system --name m3 --ram 12336 --vcpus 4 --hvm --disk path=/dev/fedora/m3 -w network=ocp4,model=virtio,mac=52:54:00:b3:7d:1d --noautoconsole -l /var/lib/libvirt/images/rhcos-4.2.0-x86_64-installer.iso,kernel=images/vmlinuz,initrd=images/initramfs.img --extra-args="${args}" --os-variant=rhel7.0
+virt-install -v --connect=qemu:///system --name m3 --ram 10240 --vcpus 4 --hvm --disk path=/dev/fedora/m3 -w network=ocp4,model=virtio,mac=52:54:00:b3:7d:1d --noautoconsole -l /var/lib/libvirt/images/rhcos-4.2.0-x86_64-installer.iso,kernel=images/vmlinuz,initrd=images/initramfs.img --extra-args="${args}" --os-variant=rhel7.0
 ```
 
 Workers
@@ -874,9 +874,9 @@ args+='coreos.inst.install_dev=vda '
 args+='coreos.inst.image_url=http://10.0.0.184:8080/rhcos-4.2.0-x86_64-metal-bios.raw.gz '
 args+='coreos.inst.ignition_url=http://10.0.0.184:8080/worker.ign '
 
-virt-install -v --connect=qemu:///system --name w1 --ram 12336 --vcpus 4 --hvm --disk path=/dev/fedora/w1 -w network=ocp4,model=virtio,mac=52:54:00:b3:7d:1e --noautoconsole -l /var/lib/libvirt/images/rhcos-4.2.0-x86_64-installer.iso,kernel=images/vmlinuz,initrd=images/initramfs.img --extra-args="${args}" --os-variant=rhel7.0
+virt-install -v --connect=qemu:///system --name w1 --ram 10240 --vcpus 4 --hvm --disk path=/dev/fedora/w1 -w network=ocp4,model=virtio,mac=52:54:00:b3:7d:1e --noautoconsole -l /var/lib/libvirt/images/rhcos-4.2.0-x86_64-installer.iso,kernel=images/vmlinuz,initrd=images/initramfs.img --extra-args="${args}" --os-variant=rhel7.0
 
-virt-install -v --connect=qemu:///system --name w2 --ram 12336 --vcpus 4 --hvm --disk path=/dev/fedora/w2 -w network=ocp4,model=virtio,mac=52:54:00:b3:7d:1f --noautoconsole -l /var/lib/libvirt/images/rhcos-4.2.0-x86_64-installer.iso,kernel=images/vmlinuz,initrd=images/initramfs.img --extra-args="${args}" --os-variant=rhel7.0
+virt-install -v --connect=qemu:///system --name w2 --ram 10240 --vcpus 4 --hvm --disk path=/dev/fedora/w2 -w network=ocp4,model=virtio,mac=52:54:00:b3:7d:1f --noautoconsole -l /var/lib/libvirt/images/rhcos-4.2.0-x86_64-installer.iso,kernel=images/vmlinuz,initrd=images/initramfs.img --extra-args="${args}" --os-variant=rhel7.0
 ```
 
 If needed, clean up all vms
@@ -891,7 +891,7 @@ for vm in bootstrap; do virsh destroy $vm; done; for vm in bootstrap; do virsh u
 
 Wait till all vms have installed and stopped
 ```
-virsh list --all
+watch virsh list --all
 ```
 
 Startup all hosts
