@@ -485,7 +485,7 @@ cd ~/ocp4
 oc adm -a ${LOCAL_SECRET_JSON} release extract --command=openshift-install "${LOCAL_REGISTRY}/${LOCAL_REPOSITORY}:${OCP_RELEASE}" --insecure=true
 ```
 
-#### OpenShift install disconnected
+### OpenShift install disconnected
 
 From the bastion host or bare metal host
 ```
@@ -989,4 +989,115 @@ $ oc get clusterversion -o json|jq ".items[0].status.history"
     "version": "4.2.10"
   }
 ]
+```
+
+### Other Images
+
+#### Generat Application Images
+
+https://docs.openshift.com/container-platform/4.2/openshift_images/image-configuration.html
+
+```
+oc edit image.config.openshift.io/cluster
+
+  allowedRegistriesForImport:
+    - domainName: bastion.hosts.eformat.me
+      insecure: false
+  additionalTrustedCA:
+    name: bastion-registry-ca
+```
+
+`additionalTrustedCA`: A reference to a ConfigMap containing additional CAs that should be trusted during ImageStream import, pod image pull, openshift-image-registry pullthrough, and builds. The namespace for this ConfigMap is openshift-config. The format of the ConfigMap is to use the registry hostname as the key, and the base64-encoded certificate as the value, for each additional registry CA to trust.
+
+You need to include the port number (..:433) in the configmap key, for the build logic to use the CA otherwise it doesn't match - Note the `..` formatting here and whitespace!
+```
+cat <<'EOF' | oc apply -f -
+kind: ConfigMap
+apiVersion: v1
+metadata:
+  name: bastion-registry-ca
+  namespace: openshift-config
+data:
+  bastion.hosts.eformat.me..443: |
+    -----BEGIN CERTIFICATE-----
+    MIIC3jCCAcagAwIBAgIBADANBgkqhkiG9w0BAQsFADAoMRQwEgYDVQQKDAtwZXJz
+    b25hbF9jYTEQMA4GA1UEAwwHcm9vdF9jYTAeFw0xOTEyMTcxMDM4NTFaFw0yOTEy
+    MTcxMDM4NTFaMCgxFDASBgNVBAoMC3BlcnNvbmFsX2NhMRAwDgYDVQQDDAdyb290
+    X2NhMIIBIjANBgkqhkiG9w0BAQEFAAOCAQ8AMIIBCgKCAQEAoYBfJlhQAIObb1gA
+    yKztyAoT7jgZqE80K9smdH7XtRDnyQqz2FlQ+N/SChJuU8IOc20lGdthgCoE1MZq
+    cCHWduis71hEu/y9b0j9EsZ0CgGOntI2JauKbSnJBBSu6FQFKlbR9g6s7VInfwqA
+    Wh6gz3sllZ2RoVODOk9/a+1zOUew7z/MW3wHkUgol16Wu5MdIhdLUjbQcViepXNH
+    qmyqDDcNN8N7rxVPWEC79U7q4sllaqLAvs1T0Pi+GLGgE5youPX7p+mq/iPE/Poh
+    sSzwMKlQSkxLixeW1oSWdxnWTIZKS3exazuWxC7Y1wYzXf63pVxhkeyV00H2kKw1
+    R4+GBQIDAQABoxMwETAPBgNVHRMBAf8EBTADAQH/MA0GCSqGSIb3DQEBCwUAA4IB
+    AQCIFQRryqShRibG2NNky2CecWgYQfcKsE96S+xMhQQ+XRE40mApXycsxKYbAniu
+    eg/5uxJLstQmBN2KvA/VKCH3iAejYUv/KCvzYa2vOPZwt9OXxRWO+VtSQ8DX9bPE
+    qCt+QWe1t8me4DlyB1Ib6WmDpIrG/ZerHrAlKIGXcDuQezbo4VRBYWYjP00qsq3U
+    lvl4HMryCHZ8G1MxSHLyiXRWGvAVRxr6gxAvzujQZSnyn8F+sSk1jKwZPpVfBG5A
+    Z15xgQJRTAN04Dw8ilm6Ehmn+0ua0ibhVMvGhDFIh0LRczzJTCn+0NMTK3WmR1zW
+    ujlCRxfNbnSN9ZlGg6c0YunR
+    -----END CERTIFICATE-----
+EOF
+```
+
+Import image into our quay registry
+```
+docker pull quay.io/eformat/welcome
+docker tag quay.io/eformat/welcome:latest bastion.hosts.eformat.me:443/openshift/welcome:latest
+docker push bastion.hosts.eformat.me:443/openshift/welcome:latest
+```
+
+Test out deploying an application image
+```
+oc new-project foo
+oc import-image --all --confirm -n foo bastion.hosts.eformat.me:443/openshift/welcome
+oc new-app --image-stream=welcome
+oc expose svc/welcome
+```
+
+#### Debug node image
+
+To run `oc debug node/<node name>` we need the support tools images.
+
+Update trust for quay so we can use skopeo
+```
+sudo cp certs/tls/certs/cacert.crt /etc/pki/ca-trust/source/anchors/skopeo-openshift-ca.crt
+sudo update-ca-trust extract
+```
+
+Get latest digest
+```
+skopeo inspect docker://registry.redhat.io/rhel7/support-tools:latest
+```
+
+Copy image
+```
+skopeo copy \
+   docker://registry.redhat.io/rhel7/support-tools@sha256:459f46f24fe92c5495f772c498d5b2c71f1d68ac23929dfb2c2869a35d0b5807 \
+   docker://bastion.hosts.eformat.me:443/openshift/support-tools
+```
+
+Create an ImageContentSourcePolicy
+```
+cat <<EOF | oc apply -f -
+apiVersion: operator.openshift.io/v1alpha1
+kind: ImageContentSourcePolicy
+metadata:
+  name: support-tools
+spec:
+  repositoryDigestMirrors:
+  - mirrors:
+    - bastion.hosts.eformat.me:443/openshift/support-tools
+    source: registry.redhat.io/rhel7/support-tools
+EOF
+```
+
+```
+oc debug node/w1 --image=bastion.hosts.eformat.me:443/openshift/support-tools
+```
+
+```
+# FIXME - these still fail ?? WHY .. not using mirror? -- https://bugzilla.redhat.com/show_bug.cgi?id=1728135
+oc debug node/w1 
+oc debug node/w1 --image=registry.redhat.io/rhel7/support-tools@sha256:459f46f24fe92c5495f772c498d5b2c71f1d68ac23929dfb2c2869a35d0b5807
 ```
