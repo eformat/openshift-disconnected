@@ -1114,6 +1114,20 @@ Copy image
 oc image mirror registry.redhat.io/rhel7/support-tools:latest  bastion.hosts.eformat.me:443/openshift/support-tools:latest
 ```
 
+`OR` in Quay, setup an image mirror, then Select Sync now
+```
+Create repo: openshift/support-tools
+Settings
+State: Mirror
+
+Mirroring
+External Registry: registry.redhat.io/rhel7/support-tools
+Sync Interval: 1 day
+Robot User: openshift+docker
+Credentials Remote: 7271256|eformat:<password>
+Verify TLS: yes
+```
+
 Create an ImageContentSourcePolicy
 ```
 cat <<EOF | oc apply -f -
@@ -1134,7 +1148,53 @@ Test
 # works
 oc debug node/w1 --image=bastion.hosts.eformat.me:443/openshift/support-tools
 
-# FIXME - these still fail ?? WHY .. should be using mirror? -- https://bugzilla.redhat.com/show_bug.cgi?id=1728135
-oc debug node/w1 
+# FIXME - these still fail ?? WHY, .. should be using mirror
+# BUG - https://bugzilla.redhat.com/show_bug.cgi?id=1728135
+oc debug node/w1
 oc debug node/w1 --image=registry.redhat.io/rhel7/support-tools@sha256:459f46f24fe92c5495f772c498d5b2c71f1d68ac23929dfb2c2869a35d0b5807
+```
+
+#### UBI minimal image
+
+From authenticated registry
+
+Quay, setup an image mirror, then Select Sync now
+```
+Create repo: openshift/ubi-minimal
+Settings
+State: Mirror
+
+Mirroring
+External Registry: registry.redhat.io/ubi8/ubi-minimal
+Sync Interval: 1 day
+Robot User: openshift+docker
+Credentials Remote: 7271256|eformat:<password>
+Verify TLS: yes
+```
+
+Create an ImageContentSourcePolicy
+```
+cat <<EOF | oc apply -f -
+apiVersion: operator.openshift.io/v1alpha1
+kind: ImageContentSourcePolicy
+metadata:
+  name: ubi8-minimal
+spec:
+  repositoryDigestMirrors:
+  - mirrors:
+    - bastion.hosts.eformat.me:443/openshift/ubi-minimal
+    source: registry.redhat.io/ubi8/ubi-minimal
+EOF
+```
+
+Get a node debug pod
+```
+oc debug node/w1 --image=bastion.hosts.eformat.me:443/openshift/support-tools
+chroot /host
+```
+
+Must login and pull by digest (as that is how it is mirrored)
+```
+podman login bastion.hosts.eformat.me:443
+podman pull --log-level=debug registry.redhat.io/ubi8/ubi-minimal@sha256:a5e923d16f4e494627199ebc618fe6b2fa0cad14c5990877067e2bafa0ccb01f
 ```
