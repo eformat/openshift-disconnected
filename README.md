@@ -24,8 +24,6 @@ sudo cp certs/tls/certs/cacert.crt /etc/pki/ca-trust/source/anchors/
 sudo update-ca-trust
 ```
 
-Install Quay - follow: https://access.redhat.com/documentation/en-us/red_hat_quay/3/html-single/deploy_red_hat_quay_-_basic/index#preparing_for_red_hat_quay_basic 
-
 Install bastion as libvirt vm, create network
 ```
 cat <<EOF > /etc/libvirt/qemu/networks/ocp4.xml
