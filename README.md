@@ -5,7 +5,7 @@ Steps
 1. [Install quay on a bastion host](#quay)
 - https://access.redhat.com/documentation/en-us/red_hat_quay/3/html-single/deploy_red_hat_quay_-_basic/index#preparing_for_red_hat_quay_basic
 
-2. [Create mirror registry and populate off line repos] (#create-mirror-registry)
+2. [Create mirror registry and populate off line repos](#create-mirror-registry)
 - https://docs.openshift.com/container-platform/4.2/installing/installing_restricted_networks/installing-restricted-networks-preparations.html
 
 3. [Install openshift disconnected](#openshift-install-disconnected)
