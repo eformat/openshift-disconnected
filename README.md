@@ -948,6 +948,11 @@ Cleanup bootstrap node
 for vm in bootstrap; do virsh destroy $vm; done; for vm in bootstrap; do virsh undefine $vm; done; for lv in bootstrap; do lvremove -f fedora/$lv; done
 ```
 
+Copy kube config
+```
+cp ocp4/cluster-foo/auth/kubeconfig ~/.kube/config
+```
+
 Install wont finish till registry booted with disk use empty for now
 ```
 oc patch configs.imageregistry.operator.openshift.io cluster --type merge --patch '{"spec":{"storage":{"emptyDir":{}}}}'
