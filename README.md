@@ -14,12 +14,15 @@ Steps
 
    - https://docs.openshift.com/container-platform/4.2/installing/installing_restricted_networks/installing-restricted-networks-bare-metal.html#installing-restricted-networks-bare-metal
 
-4. [Install images, olm, samples disconnected](#other-images) 
+4. [Install images disconnected](#other-images) 
 
    - https://docs.openshift.com/container-platform/4.2/openshift_images/image-configuration.html
+
+5. [Install olm disconnected](#olm) 
+
    - https://docs.openshift.com/container-platform/4.2/operators/olm-restricted-networks.html
 
-5. [Update cluster versions disconnected](#)
+6. [Update cluster versions disconnected](#)
 
 
 ### Quay
@@ -1366,10 +1369,9 @@ oc get catalogsource -n openshift-marketplace
 NAME                  DISPLAY               TYPE   PUBLISHER   AGE
 my-operator-catalog   My Operator Catalog   grpc               11s
 
-oc get pods -n openshift-marketplace
 NAME                                    READY   STATUS    RESTARTS   AGE
 marketplace-operator-7bfd5cf75c-bfz8s   1/1     Running   0          16h
-my-operator-catalog-6tckk               0/1     Running   0          17s
+my-operator-catalog-6tckk               1/1     Running   0          19m
 
 oc get packagemanifest -n openshift-marketplace
 NAME          CATALOG               AGE
