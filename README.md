@@ -1198,3 +1198,218 @@ Must login and pull by digest (as that is how it is mirrored)
 podman login bastion.hosts.eformat.me:443
 podman pull --log-level=debug registry.redhat.io/ubi8/ubi-minimal@sha256:a5e923d16f4e494627199ebc618fe6b2fa0cad14c5990877067e2bafa0ccb01f
 ```
+
+### OLM
+
+Disable the default OperatorSources
+```
+oc patch OperatorHub cluster --type json -p '[{"op": "add", "path": "/spec/disableAllDefaultSources", "value": true}]'
+```
+
+Get all manifests for all operator namespaces (redhat-operators community-operators certified-operators)
+```
+./get-operator-package.sh
+```
+
+These are created in a directory called `olm/manifests`. There are 2 types of bundles; single file `bundle.yaml` that need unpacking (see ocp product documentation!)
+```
+Manifests
+└── openshifttemplateservicebroker
+├── clusterserviceversion.yaml
+├── customresourcedefinition.yaml
+├── package.yaml
+└── etcd-XXXX
+  └─ <CSV’s and CRDs and a package file>
+```
+If you already see files like this, then you should not have to do anything
+
+#### Example `redhat-operators/amq-streams`
+
+amq-streams as a single example that is unbundled already (no bundle.yaml)
+```
+cd olm/manifests/redhat-operators/amq-streams/amq-streams-jys3kr7c
+tree
+
+├── 1.0.0
+│   ├── amq-streams-kafkaconnect.crd.yaml
+│   ├── amq-streams-kafkaconnects2i.crd.yaml
+│   ├── amq-streams-kafka.crd.yaml
+│   ├── amq-streams-kafkamirrormaker.crd.yaml
+│   ├── amq-streams-kafkatopic.crd.yaml
+│   ├── amq-streams-kafkauser.crd.yaml
+│   └── amq-streams.v1.0.0.clusterserviceversion.yaml
+├── 1.1.0
+│   ├── amq-streams-kafkaconnect.crd.yaml
+│   ├── amq-streams-kafkaconnects2i.crd.yaml
+│   ├── amq-streams-kafka.crd.yaml
+│   ├── amq-streams-kafkamirrormaker.crd.yaml
+│   ├── amq-streams-kafkatopic.crd.yaml
+│   ├── amq-streams-kafkauser.crd.yaml
+│   └── amq-streams.v1.1.0.clusterserviceversion.yaml
+├── 1.2.0
+│   ├── amq-streams-kafkabridges.crd.yaml
+│   ├── amq-streams-kafkaconnects2is.crd.yaml
+│   ├── amq-streams-kafkaconnects.crd.yaml
+│   ├── amq-streams-kafkamirrormakers.crd.yaml
+│   ├── amq-streams-kafkas.crd.yaml
+│   ├── amq-streams-kafkatopics.crd.yaml
+│   ├── amq-streams-kafkausers.crd.yaml
+│   └── amq-streams.v1.2.0.clusterserviceversion.yaml
+├── 1.3.0
+│   ├── amq-streams-kafkabridges.crd.yaml
+│   ├── amq-streams-kafkaconnects2is.crd.yaml
+│   ├── amq-streams-kafkaconnects.crd.yaml
+│   ├── amq-streams-kafkamirrormakers.crd.yaml
+│   ├── amq-streams-kafkas.crd.yaml
+│   ├── amq-streams-kafkatopics.crd.yaml
+│   ├── amq-streams-kafkausers.crd.yaml
+│   └── amq-streams.v1.3.0.clusterserviceversion.yaml
+└── amq-streams.package.yaml
+```
+
+Edit *clusterserviceversion.yaml and change
+
+- OperatorImage from quay.io to your mirror image registry
+- OR registry.redhat.io imagetag to an registry.redhat.io image digest
+
+Remove unwanted versions and list images in the version we want (1.3.0 in this case)
+```
+rm -rf 1.0.0/ 1.1.0/ 1.2.0/
+cat */amq-streams.*.clusterserviceversion.yaml | grep registry.redhat.io
+
+    containerImage: registry.redhat.io/amq7/amq-streams-operator:1.3.0
+                image: registry.redhat.io/amq7/amq-streams-operator:1.3.0
+                  value: registry.redhat.io/amq7/amq-streams-kafka-23:1.3.0
+                  value: registry.redhat.io/amq7/amq-streams-kafka-23:1.3.0
+                  value: registry.redhat.io/amq7/amq-streams-kafka-23:1.3.0
+                  value: registry.redhat.io/amq7/amq-streams-kafka-23:1.3.0
+                  value: registry.redhat.io/amq7/amq-streams-kafka-23:1.3.0
+                    2.2.1=registry.redhat.io/amq7/amq-streams-kafka-22:1.3.0
+                    2.3.0=registry.redhat.io/amq7/amq-streams-kafka-23:1.3.0
+                    2.2.1=registry.redhat.io/amq7/amq-streams-kafka-22:1.3.0
+                    2.3.0=registry.redhat.io/amq7/amq-streams-kafka-23:1.3.0
+                    2.2.1=registry.redhat.io/amq7/amq-streams-kafka-22:1.3.0
+                    2.3.0=registry.redhat.io/amq7/amq-streams-kafka-23:1.3.0
+                    2.2.1=registry.redhat.io/amq7/amq-streams-kafka-22:1.3.0
+                    2.3.0=registry.redhat.io/amq7/amq-streams-kafka-23:1.3.0
+                  value: registry.redhat.io/amq7/amq-streams-operator:1.3.0
+                  value: registry.redhat.io/amq7/amq-streams-operator:1.3.0
+                  value: registry.redhat.io/amq7/amq-streams-operator:1.3.0
+                  value: registry.redhat.io/amq7/amq-streams-bridge:1.3.0
+```
+
+Replace with our quay registry
+```
+# replace
+sed -i 's|registry.redhat.io/amq7|bastion.hosts.eformat.me:443/openshift|' */amq-streams.v1.3.0.clusterserviceversion.yaml
+# remove `replaces` line as we only have one version
+sed -i '/replaces/'d */amq-streams.v1.3.0.clusterserviceversion.yaml
+# check
+cat */amq-streams.*.clusterserviceversion.yaml | grep bastion.hosts.eformat.me:443 
+```
+
+Sync all needed images from Quay.io to your mirror registry
+```
+oc image mirror registry.redhat.io/amq7/amq-streams-bridge:1.3.0 bastion.hosts.eformat.me:443/openshift/amq-streams-bridge:1.3.0
+oc image mirror registry.redhat.io/amq7/amq-streams-kafka-22:1.3.0 bastion.hosts.eformat.me:443/openshift/amq-streams-kafka-22:1.3.0
+oc image mirror registry.redhat.io/amq7/amq-streams-kafka-23:1.3.0 bastion.hosts.eformat.me:443/openshift/amq-streams-kafka-23:1.3.0
+oc image mirror registry.redhat.io/amq7/amq-streams-operator:1.3.0 bastion.hosts.eformat.me:443/openshift/amq-streams-operator:1.3.0
+```
+
+Create olm custom registry image 
+```
+cd ~/git/openshift-disconnected
+
+cat <<EOF > Dockerfile.olm
+FROM registry.redhat.io/openshift4/ose-operator-registry:latest AS builder
+COPY olm/manifests/redhat-operators/amq-streams/amq-streams-jys3kr7c manifests
+RUN /bin/initializer -o ./bundles.db
+FROM registry.redhat.io/ubi8/ubi-minimal:latest
+COPY --from=builder /registry/bundles.db /bundles.db
+COPY --from=builder /usr/bin/registry-server /registry-server
+COPY --from=builder /usr/bin/grpc_health_probe /bin/grpc_health_probe
+
+EXPOSE 50051
+ENTRYPOINT ["/registry-server"]
+CMD ["--database", "bundles.db"]
+EOF
+```
+
+Build and push to quay
+```
+docker build -f Dockerfile.olm -t bastion.hosts.eformat.me:443/openshift/custom-registry .
+docker push bastion.hosts.eformat.me:443/openshift/custom-registry
+```
+
+Create a CatalogSource pointing to the new Operator catalog image
+```
+cat <<EOF | oc apply -f -
+apiVersion: operators.coreos.com/v1alpha1
+kind: CatalogSource
+metadata:
+  name: my-operator-catalog
+  namespace: openshift-marketplace
+spec:
+  displayName: My Operator Catalog
+  sourceType: grpc
+  image: bastion.hosts.eformat.me:443/openshift/custom-registry:latest
+EOF
+```
+
+Verify deployment
+```
+oc get catalogsource -n openshift-marketplace
+NAME                  DISPLAY               TYPE   PUBLISHER   AGE
+my-operator-catalog   My Operator Catalog   grpc               9s
+
+oc get catalogsource -n openshift-marketplace
+NAME                  DISPLAY               TYPE   PUBLISHER   AGE
+my-operator-catalog   My Operator Catalog   grpc               11s
+
+oc get pods -n openshift-marketplace
+NAME                                    READY   STATUS    RESTARTS   AGE
+marketplace-operator-7bfd5cf75c-bfz8s   1/1     Running   0          16h
+my-operator-catalog-6tckk               0/1     Running   0          17s
+
+oc get packagemanifest -n openshift-marketplace
+NAME          CATALOG               AGE
+amq-streams   My Operator Catalog   43s
+```
+
+You should also be able to view them from the OperatorHub page in the web console and install amq-streams operator
+
+From CLI
+```
+oc new-project amq
+
+cat <<EOF | oc apply -f -
+apiVersion: v1
+items:
+- apiVersion: operators.coreos.com/v1alpha1
+  kind: Subscription
+  metadata:
+    name: amq-streams
+    namespace: amq
+  spec:
+    channel: stable
+    installPlanApproval: Automatic
+    name: amq-streams
+    source: my-operator-catalog
+    sourceNamespace: openshift-marketplace
+    startingCSV: amqstreams.v1.3.0
+- apiVersion: operators.coreos.com/v1
+  kind: OperatorGroup
+  metadata:
+    annotations:
+      olm.providedAPIs: Kafka.v1beta1.kafka.strimzi.io,KafkaBridge.v1alpha1.kafka.strimzi.io,KafkaConnect.v1beta1.kafka.strimzi.io,KafkaConnectS2I.v1beta1.kafka.strimzi.io,KafkaMirrorMaker.v1beta1.kafka.strimzi.io,KafkaTopic.v1beta1.kafka.strimzi.io,KafkaUser.v1beta1.kafka.strimzi.io
+    name: amq-streams
+    namespace: amq
+  spec:
+    targetNamespaces:
+    - amq
+kind: List
+metadata:
+  resourceVersion: ""
+  selfLink: ""
+EOF
+```
