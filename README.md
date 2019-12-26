@@ -22,7 +22,11 @@ Steps
 
    - https://docs.openshift.com/container-platform/4.2/operators/olm-restricted-networks.html
 
-6. [Update cluster versions disconnected](#)
+6. [Install samples disconnected](#samples-operator) 
+
+   - https://docs.openshift.com/container-platform/4.2/installing/installing_restricted_networks/installing-restricted-networks-preparations.html#installation-restricted-network-samples_installing-restricted-networks-preparations
+
+7. [Update cluster versions disconnected](#update-cluster-to-new-version)
 
 
 ### Quay
@@ -1414,4 +1418,83 @@ metadata:
   resourceVersion: ""
   selfLink: ""
 EOF
+```
+
+### Samples Operator
+
+This operator will fail as image streams are not mirrored by default. It should not fail the install. If you do not want to support any of the sample imagestreams, set the Samples Operator to Removed in the Samples Operator configuration object.
+
+```
+oc patch config.samples.operator.openshift.io/cluster --patch '{"spec":{"managementState": "Removed"}}' --type=merge
+oc get config.samples.operator.openshift.io/cluster -o yaml
+```
+
+// TODO - try to mirror images and set these fields in the samples operator
+```
+spec:
+  samplesRegistry: bastion.hosts.eformat.me:443
+  skippedTemplates:
+    - <list>
+  skippedImagestreams:
+    - <list>
+```
+
+
+### Update cluster to new version
+
+Mirror repository variables
+```
+export OCP_RELEASE=4.2.12
+export LOCAL_REGISTRY='bastion.hosts.eformat.me:443'
+export LOCAL_REPOSITORY='openshift/ocp4.2.12'
+export PRODUCT_REPO='openshift-release-dev' 
+export LOCAL_SECRET_JSON='/home/mike/.docker/config.json' 
+export RELEASE_NAME="ocp-release"
+```
+
+Mirror images
+```
+oc adm -a ${LOCAL_SECRET_JSON} release mirror \
+     --from=quay.io/${PRODUCT_REPO}/${RELEASE_NAME}:${OCP_RELEASE} \
+     --to=${LOCAL_REGISTRY}/${LOCAL_REPOSITORY} \
+     --to-release-image=${LOCAL_REGISTRY}/${LOCAL_REPOSITORY}:${OCP_RELEASE} \
+     --insecure=true
+```
+
+To use the new mirrored repository for upgrades, use the following to create an ImageContentSourcePolicy:
+
+```
+cat <<EOF | oc apply -f -
+apiVersion: operator.openshift.io/v1alpha1
+kind: ImageContentSourcePolicy
+metadata:
+  name: image-policy-4212
+spec:
+  repositoryDigestMirrors:
+  - mirrors:
+    - bastion.hosts.eformat.me:443/openshift/ocp4.2.12
+    source: quay.io/openshift-release-dev/ocp-release
+  - mirrors:
+    - bastion.hosts.eformat.me:443/openshift/ocp4.2.12
+    source: quay.io/openshift-release-dev/ocp-v4.0-art-dev
+EOF
+```
+
+Wait till all nodes have had had `ImageContentSourcePolicy` pushed put and are `Ready`
+```
+watch oc get nodes
+
+Every 2.0s: oc get nodes
+
+NAME   STATUS     ROLES    AGE     VERSION
+m1     Ready      master   3d22h   v1.14.6+888f9c630
+m2     Ready      master   3d22h   v1.14.6+888f9c630
+m3     NotReady   master   3d22h   v1.14.6+888f9c630
+w1     Ready      worker   3d22h   v1.14.6+888f9c630
+w2     Ready      worker   3d22h   v1.14.6+888f9c630
+```
+
+Upgrade cluster using new repository
+```
+oc adm upgrade --to-image bastion.hosts.eformat.me:443/openshift/ocp4.2.12:4.2.12 --allow-explicit-upgrade --force
 ```

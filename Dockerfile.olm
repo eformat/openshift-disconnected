@@ -1,0 +1,11 @@
+FROM registry.redhat.io/openshift4/ose-operator-registry:latest AS builder
+COPY olm/manifests/redhat-operators/amq-streams/amq-streams-jys3kr7c manifests
+RUN /bin/initializer -o ./bundles.db
+FROM registry.redhat.io/ubi8/ubi-minimal:latest
+COPY --from=builder /registry/bundles.db /bundles.db
+COPY --from=builder /usr/bin/registry-server /registry-server
+COPY --from=builder /usr/bin/grpc_health_probe /bin/grpc_health_probe
+
+EXPOSE 50051
+ENTRYPOINT ["/registry-server"]
+CMD ["--database", "bundles.db"]

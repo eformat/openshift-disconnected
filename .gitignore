@@ -1,0 +1,8 @@
+certs/
+certs_db
+pull-secret.txt
+quay-config.tar.gz
+*~
+.idea/
+.vscode/
+olm/
