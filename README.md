@@ -1054,12 +1054,16 @@ $ oc get clusterversion -o json|jq ".items[0].status.history"
 
 https://docs.openshift.com/container-platform/4.2/openshift_images/image-configuration.html
 
+We need to leave quay.io in allowed registries for upgrades that import from mirror (else image stream import fails)
+
 ```
 oc edit image.config.openshift.io/cluster
 
   allowedRegistriesForImport:
     - domainName: bastion.hosts.eformat.me
       insecure: false
+    - domainName: quay.io
+      insecure: false      
   additionalTrustedCA:
     name: bastion-registry-ca
 ```
@@ -1439,7 +1443,6 @@ spec:
     - <list>
 ```
 
-
 ### Update cluster to new version
 
 Mirror repository variables
@@ -1468,12 +1471,19 @@ cat <<EOF | oc apply -f -
 apiVersion: operator.openshift.io/v1alpha1
 kind: ImageContentSourcePolicy
 metadata:
-  name: image-policy-4212
+  name: image-policy-4212-0
 spec:
   repositoryDigestMirrors:
   - mirrors:
     - bastion.hosts.eformat.me:443/openshift/ocp4.2.12
     source: quay.io/openshift-release-dev/ocp-release
+---
+apiVersion: operator.openshift.io/v1alpha1
+kind: ImageContentSourcePolicy
+metadata:
+  name: image-policy-4212-1
+spec:
+  repositoryDigestMirrors:
   - mirrors:
     - bastion.hosts.eformat.me:443/openshift/ocp4.2.12
     source: quay.io/openshift-release-dev/ocp-v4.0-art-dev
@@ -1497,4 +1507,9 @@ w2     Ready      worker   3d22h   v1.14.6+888f9c630
 Upgrade cluster using new repository
 ```
 oc adm upgrade --to-image bastion.hosts.eformat.me:443/openshift/ocp4.2.12:4.2.12 --allow-explicit-upgrade --force
+```
+
+Downgrade (needed to do this to set samples operator to Removed)
+```
+oc adm upgrade --to-image bastion.hosts.eformat.me:443/openshift/ocp4:4.2.10 --allow-explicit-upgrade --force
 ```
