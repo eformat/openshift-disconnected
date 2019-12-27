@@ -1217,6 +1217,27 @@ Disable the default OperatorSources
 oc patch OperatorHub cluster --type json -p '[{"op": "add", "path": "/spec/disableAllDefaultSources", "value": true}]'
 ```
 
+Can also specify individual sources to disable (needed to do this for upgrade to 4.2.12 to work as expected)
+```
+apiVersion: v1
+items:
+- apiVersion: config.openshift.io/v1
+  kind: OperatorHub
+  metadata:
+    annotations:
+      release.openshift.io/create-only: "true"
+    name: cluster
+  spec:
+    sources:
+    - disabled: true
+      name: community-operators
+    - disabled: true
+      name: redhat-operators
+    - disabled: true
+      name: certified-operators
+```
+
+
 Get all manifests for all operator namespaces (redhat-operators community-operators certified-operators)
 ```
 ./get-operator-package.sh
@@ -1377,10 +1398,6 @@ oc get catalogsource -n openshift-marketplace
 NAME                  DISPLAY               TYPE   PUBLISHER   AGE
 my-operator-catalog   My Operator Catalog   grpc               11s
 
-NAME                                    READY   STATUS    RESTARTS   AGE
-marketplace-operator-7bfd5cf75c-bfz8s   1/1     Running   0          16h
-my-operator-catalog-6tckk               1/1     Running   0          19m
-
 oc get packagemanifest -n openshift-marketplace
 NAME          CATALOG               AGE
 amq-streams   My Operator Catalog   43s
@@ -1422,6 +1439,11 @@ metadata:
   resourceVersion: ""
   selfLink: ""
 EOF
+```
+
+You can see the operatorhub crd - https://docs.openshift.com/container-platform/4.2/operators/olm-understanding-operatorhub.html
+```
+oc edit operatorhub cluster
 ```
 
 ### Samples Operator
