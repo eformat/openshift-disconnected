@@ -1469,9 +1469,9 @@ spec:
 
 Mirror repository variables
 ```
-export OCP_RELEASE=4.2.12
+export OCP_RELEASE=4.2.13
 export LOCAL_REGISTRY='bastion.hosts.eformat.me:443'
-export LOCAL_REPOSITORY='openshift/ocp4.2.12'
+export LOCAL_REPOSITORY='openshift/ocp4.2.13'
 export PRODUCT_REPO='openshift-release-dev' 
 export LOCAL_SECRET_JSON='/home/mike/.docker/config.json' 
 export RELEASE_NAME="ocp-release"
@@ -1493,21 +1493,21 @@ cat <<EOF | oc apply -f -
 apiVersion: operator.openshift.io/v1alpha1
 kind: ImageContentSourcePolicy
 metadata:
-  name: image-policy-4212-0
+  name: image-policy-4213-0
 spec:
   repositoryDigestMirrors:
   - mirrors:
-    - bastion.hosts.eformat.me:443/openshift/ocp4.2.12
+    - bastion.hosts.eformat.me:443/openshift/ocp4.2.13
     source: quay.io/openshift-release-dev/ocp-release
 ---
 apiVersion: operator.openshift.io/v1alpha1
 kind: ImageContentSourcePolicy
 metadata:
-  name: image-policy-4212-1
+  name: image-policy-4213-1
 spec:
   repositoryDigestMirrors:
   - mirrors:
-    - bastion.hosts.eformat.me:443/openshift/ocp4.2.12
+    - bastion.hosts.eformat.me:443/openshift/ocp4.2.13
     source: quay.io/openshift-release-dev/ocp-v4.0-art-dev
 EOF
 ```
@@ -1519,19 +1519,19 @@ watch oc get nodes
 Every 2.0s: oc get nodes
 
 NAME   STATUS     ROLES    AGE     VERSION
-m1     Ready      master   3d22h   v1.14.6+888f9c630
-m2     Ready      master   3d22h   v1.14.6+888f9c630
-m3     NotReady   master   3d22h   v1.14.6+888f9c630
-w1     Ready      worker   3d22h   v1.14.6+888f9c630
-w2     Ready      worker   3d22h   v1.14.6+888f9c630
+m1     Ready      master   3d22h   v1.14.6+cebabbf4a
+m2     Ready      master   3d22h   v1.14.6+cebabbf4a
+m3     NotReady   master   3d22h   v1.14.6+cebabbf4a
+w1     Ready      worker   3d22h   v1.14.6+cebabbf4a
+w2     Ready      worker   3d22h   v1.14.6+cebabbf4a
 ```
 
 Upgrade cluster using new repository
 ```
-oc adm upgrade --to-image bastion.hosts.eformat.me:443/openshift/ocp4.2.12:4.2.12 --allow-explicit-upgrade --force
+oc adm upgrade --to-image bastion.hosts.eformat.me:443/openshift/ocp4.2.13:4.2.13 --allow-explicit-upgrade --force
 ```
 
 Downgrade (needed to do this to set samples operator to Removed)
 ```
-oc adm upgrade --to-image bastion.hosts.eformat.me:443/openshift/ocp4:4.2.10 --allow-explicit-upgrade --force
+oc adm upgrade --to-image bastion.hosts.eformat.me:443/openshift/ocp4:4.2.12 --allow-explicit-upgrade --force
 ```
