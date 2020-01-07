@@ -6,3 +6,4 @@ quay-config.tar.gz
 .idea/
 .vscode/
 olm/
+*.crt
