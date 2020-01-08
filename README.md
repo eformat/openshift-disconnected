@@ -1106,12 +1106,18 @@ Import image into our quay registry
 docker pull quay.io/eformat/welcome
 docker tag quay.io/eformat/welcome:latest bastion.hosts.eformat.me:443/openshift/welcome:latest
 docker push bastion.hosts.eformat.me:443/openshift/welcome:latest
+
+# Or use skopeo as an example
+skopeo --debug copy docker://registry.redhat.io/rhoar-nodejs/nodejs-10@sha256:74a3ef2964efc03dfc239da3f09691b720ce54ff4bb47588864adb222133f0fc  docker://bastion.hosts.eformat.me:443/openshift/nodejs-10:latest
 ```
 
 Test out deploying an application image
 ```
 oc new-project foo
+oc create secret generic imagestreamsecret --from-file=.dockerconfigjson=$HOME/.docker/config.json --type=kubernetes.io/dockerconfigjson 
 oc import-image --all --confirm -n foo bastion.hosts.eformat.me:443/openshift/welcome
+# OR
+# oc tag --source=docker bastion.hosts.eformat.me:443/openshift/welcome:latest welcome:latest
 oc new-app --image-stream=welcome
 oc expose svc/welcome
 ```
