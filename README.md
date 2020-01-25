@@ -487,8 +487,8 @@ Mirror repository variables
 export OCP_RELEASE=4.2.10
 export LOCAL_REGISTRY='bastion.hosts.eformat.me:443'
 export LOCAL_REPOSITORY='openshift/ocp4'
-export PRODUCT_REPO='openshift-release-dev' 
-export LOCAL_SECRET_JSON='/home/mike/.docker/config.json' 
+export PRODUCT_REPO='openshift-release-dev'
+export LOCAL_SECRET_JSON='/home/mike/.docker/config.json'
 export RELEASE_NAME="ocp-release"
 ```
 
@@ -568,12 +568,12 @@ cat <<'EOF' > install-config.yaml
 apiVersion: v1
 baseDomain: eformat.me
 compute:
-- hyperthreading: Enabled   
+- hyperthreading: Enabled
   name: worker
-  replicas: 0 
+  replicas: 0
 controlPlane:
-  hyperthreading: Enabled   
-  name: master 
+  hyperthreading: Enabled
+  name: master
   replicas: 3
 imageContentSources:
 - mirrors:
@@ -1475,11 +1475,11 @@ spec:
 
 Mirror repository variables
 ```
-export OCP_RELEASE=4.2.13
+export OCP_RELEASE=4.2.14-x86_64
 export LOCAL_REGISTRY='bastion.hosts.eformat.me:443'
-export LOCAL_REPOSITORY='openshift/ocp4.2.13'
-export PRODUCT_REPO='openshift-release-dev' 
-export LOCAL_SECRET_JSON='/home/mike/.docker/config.json' 
+export LOCAL_REPOSITORY='openshift/ocp4.2.14-x86_64'
+export PRODUCT_REPO='openshift-release-dev'
+export LOCAL_SECRET_JSON='/home/mike/.docker/config.json'
 export RELEASE_NAME="ocp-release"
 ```
 
@@ -1499,21 +1499,21 @@ cat <<EOF | oc apply -f -
 apiVersion: operator.openshift.io/v1alpha1
 kind: ImageContentSourcePolicy
 metadata:
-  name: image-policy-4213-0
+  name: image-policy-4214-0
 spec:
   repositoryDigestMirrors:
   - mirrors:
-    - bastion.hosts.eformat.me:443/openshift/ocp4.2.13
+    - bastion.hosts.eformat.me:443/openshift/ocp4.2.14-x86_64
     source: quay.io/openshift-release-dev/ocp-release
 ---
 apiVersion: operator.openshift.io/v1alpha1
 kind: ImageContentSourcePolicy
 metadata:
-  name: image-policy-4213-1
+  name: image-policy-4214-1
 spec:
   repositoryDigestMirrors:
   - mirrors:
-    - bastion.hosts.eformat.me:443/openshift/ocp4.2.13
+    - bastion.hosts.eformat.me:443/openshift/ocp4.2.14-x86_64
     source: quay.io/openshift-release-dev/ocp-v4.0-art-dev
 EOF
 ```
@@ -1540,4 +1540,21 @@ oc adm upgrade --to-image bastion.hosts.eformat.me:443/openshift/ocp4.2.13:4.2.1
 Downgrade (needed to do this to set samples operator to Removed)
 ```
 oc adm upgrade --to-image bastion.hosts.eformat.me:443/openshift/ocp4:4.2.12 --allow-explicit-upgrade --force
+```
+
+### Add New Node
+
+```
+for vm in w3; do lvcreate --virtualsize 100G --name $vm -T fedora/thin_pool2; done
+vgchange -ay -K fedora
+
+args='nomodeset rd.neednet=1 ipv6.disable=1 '
+args+='coreos.inst=yes '
+args+='coreos.inst.install_dev=vda '
+args+='coreos.inst.image_url=http://10.0.0.184:8080/rhcos-4.2.0-x86_64-metal-bios.raw.gz '
+args+='coreos.inst.ignition_url=http://10.0.0.184:8080/worker.ign '
+
+virt-install -v --connect=qemu:///system --name w3 --ram 10240 --vcpus 4 --hvm --disk path=/dev/fedora/w3 -w network=ocp4,model=virtio,mac=52:54:00:b3:7d:2a --noautoconsole -l /var/lib/libvirt/images/rhcos-4.2.0-x86_64-installer.iso,kernel=images/vmlinuz,initrd=images/initramfs.img --extra-args="${args}" --os-variant=rhel7.0
+
+oc get csr -o name | xargs oc adm certificate approve
 ```
