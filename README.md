@@ -1,4 +1,4 @@
-## Diconnected OpenShift 4 Install using Quay and Libvirt
+## Disconnected OpenShift 4 Install using Quay and Libvirt
 
 Steps
 
