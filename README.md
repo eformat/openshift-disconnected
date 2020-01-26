@@ -1544,6 +1544,7 @@ oc adm upgrade --to-image bastion.hosts.eformat.me:443/openshift/ocp4:4.2.12 --a
 
 ### Add New Node
 
+Add new worker node `w3`
 ```
 for vm in w3; do lvcreate --virtualsize 100G --name $vm -T fedora/thin_pool2; done
 vgchange -ay -K fedora
@@ -1557,4 +1558,15 @@ args+='coreos.inst.ignition_url=http://10.0.0.184:8080/worker.ign '
 virt-install -v --connect=qemu:///system --name w3 --ram 10240 --vcpus 4 --hvm --disk path=/dev/fedora/w3 -w network=ocp4,model=virtio,mac=52:54:00:b3:7d:2a --noautoconsole -l /var/lib/libvirt/images/rhcos-4.2.0-x86_64-installer.iso,kernel=images/vmlinuz,initrd=images/initramfs.img --extra-args="${args}" --os-variant=rhel7.0
 
 oc get csr -o name | xargs oc adm certificate approve
+```
+
+### Delete a Node
+
+Delete worker node `w3`
+```
+oc adm cordon w3
+oc adm drain w3 --force --delete-local-data --ignore-daemonsets
+oc delete node w3
+
+for vm in w3; do virsh destroy $vm; done; for vm in w3; do virsh undefine $vm; done; for lv in w3; do lvremove -f fedora/$lv; done
 ```
