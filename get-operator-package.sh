@@ -1,6 +1,6 @@
 #!/bin/bash
 
-mkdir olm; cd olm
+mkdir olm-4.3; cd olm-4.3
 export CNR_URL='https://quay.io/cnr/api/v1/packages'
 export URLS=$(for operator_namespace in redhat-operators community-operators certified-operators; do curl -s ${CNR_URL}?namespace=${operator_namespace} | jq -r ".[] | \"${CNR_URL}/${operator_namespace}/\(.name)/\(.default)\""; done)
 for url in $URLS; do 

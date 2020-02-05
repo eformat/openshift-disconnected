@@ -1,5 +1,5 @@
 FROM registry.redhat.io/openshift4/ose-operator-registry:latest AS builder
-COPY olm/manifests/redhat-operators/amq-streams/amq-streams-jys3kr7c manifests
+COPY olm-4.3/manifests/ocs-operator/ocs-operator-oya7qeh9 manifests
 RUN /bin/initializer -o ./bundles.db
 FROM registry.redhat.io/ubi8/ubi-minimal:latest
 COPY --from=builder /registry/bundles.db /bundles.db

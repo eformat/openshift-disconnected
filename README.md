@@ -8,23 +8,23 @@ Steps
 
 2. [Create mirror registry and populate off line repos](#create-mirror-registry)
 
-   - https://docs.openshift.com/container-platform/4.2/installing/installing_restricted_networks/installing-restricted-networks-preparations.html
+   - https://docs.openshift.com/container-platform/4.3/installing/installing_restricted_networks/installing-restricted-networks-preparations.html
 
 3. [Install openshift disconnected](#openshift-install-disconnected)
 
-   - https://docs.openshift.com/container-platform/4.2/installing/installing_restricted_networks/installing-restricted-networks-bare-metal.html#installing-restricted-networks-bare-metal
+   - https://docs.openshift.com/container-platform/4.3/installing/installing_restricted_networks/installing-restricted-networks-bare-metal.html#installing-restricted-networks-bare-metal
 
-4. [Install images disconnected](#other-images) 
+4. [Install images disconnected](#other-images)
 
-   - https://docs.openshift.com/container-platform/4.2/openshift_images/image-configuration.html
+   - https://docs.openshift.com/container-platform/4.3/openshift_images/image-configuration.html
 
-5. [Install olm disconnected](#olm) 
+5. [Install olm disconnected](#olm)
 
-   - https://docs.openshift.com/container-platform/4.2/operators/olm-restricted-networks.html
+   - https://docs.openshift.com/container-platform/4.3/operators/olm-restricted-networks.html
 
-6. [Install samples disconnected](#samples-operator) 
+6. [Install samples disconnected](#samples-operator)
 
-   - https://docs.openshift.com/container-platform/4.2/installing/installing_restricted_networks/installing-restricted-networks-preparations.html#installation-restricted-network-samples_installing-restricted-networks-preparations
+   - https://docs.openshift.com/container-platform/4.3/installing/installing_restricted_networks/installing-restricted-networks-preparations.html#installation-restricted-network-samples_installing-restricted-networks-preparations
 
 7. [Update cluster versions disconnected](#update-cluster-to-new-version)
 
@@ -484,9 +484,9 @@ Copy Quay openshift+docker robot credentials to ~/.docker/config.json
 
 Mirror repository variables
 ```
-export OCP_RELEASE=4.2.10
+export OCP_RELEASE=4.3.0-x86_64
 export LOCAL_REGISTRY='bastion.hosts.eformat.me:443'
-export LOCAL_REPOSITORY='openshift/ocp4'
+export LOCAL_REPOSITORY='openshift/ocp4.3.0-x86_64'
 export PRODUCT_REPO='openshift-release-dev'
 export LOCAL_SECRET_JSON='/home/mike/.docker/config.json'
 export RELEASE_NAME="ocp-release"
@@ -503,20 +503,18 @@ oc adm -a ${LOCAL_SECRET_JSON} release mirror \
 
 Record Output when done for later
 ```
-info: Mirroring completed in 33m19.81s (2.559MB/s)
-
 Success
-Update image:  bastion.hosts.eformat.me:443/openshift/ocp4:4.2.10
-Mirror prefix: bastion.hosts.eformat.me:443/openshift/ocp4
+Update image:  bastion.hosts.eformat.me:443/openshift/ocp4.3.0-x86_64:4.3.0-x86_64
+Mirror prefix: bastion.hosts.eformat.me:443/openshift/ocp4.3.0-x86_64
 
 To use the new mirrored repository to install, add the following section to the install-config.yaml:
 
 imageContentSources:
 - mirrors:
-  - bastion.hosts.eformat.me:443/openshift/ocp4
+  - bastion.hosts.eformat.me:443/openshift/ocp4.3.0-x86_64
   source: quay.io/openshift-release-dev/ocp-release
 - mirrors:
-  - bastion.hosts.eformat.me:443/openshift/ocp4
+  - bastion.hosts.eformat.me:443/openshift/ocp4.3.0-x86_64
   source: quay.io/openshift-release-dev/ocp-v4.0-art-dev
 
 
@@ -529,10 +527,10 @@ metadata:
 spec:
   repositoryDigestMirrors:
   - mirrors:
-    - bastion.hosts.eformat.me:443/openshift/ocp4
+    - bastion.hosts.eformat.me:443/openshift/ocp4.3.0-x86_64
     source: quay.io/openshift-release-dev/ocp-release
   - mirrors:
-    - bastion.hosts.eformat.me:443/openshift/ocp4
+    - bastion.hosts.eformat.me:443/openshift/ocp4.3.0-x86_64
     source: quay.io/openshift-release-dev/ocp-v4.0-art-dev
 ```
 
@@ -557,7 +555,7 @@ eval "$(ssh-agent -s)"
 ssh-add ~/.ssh/id_rsa_foo
 ```
 
-Make folder for igntion
+Make folder for ignition
 ```
 mkdir ~/ocp4/cluster-foo && cd ~/ocp4/cluster-foo
 ```
@@ -574,13 +572,13 @@ compute:
 controlPlane:
   hyperthreading: Enabled
   name: master
-  replicas: 3
+  replicas: 3  
 imageContentSources:
 - mirrors:
-  - bastion.hosts.eformat.me:443/openshift/ocp4
+  - bastion.hosts.eformat.me:443/openshift/ocp4.3.0-x86_64
   source: quay.io/openshift-release-dev/ocp-release
 - mirrors:
-  - bastion.hosts.eformat.me:443/openshift/ocp4
+  - bastion.hosts.eformat.me:443/openshift/ocp4.3.0-x86_64
   source: quay.io/openshift-release-dev/ocp-v4.0-art-dev
 additionalTrustBundle: |
   -----BEGIN CERTIFICATE-----
@@ -606,14 +604,14 @@ metadata:
 networking:
   clusterNetworks:
   - cidr: 10.128.0.0/14
-    hostPrefix: 23 
+    hostPrefix: 23
   networkType: OpenShiftSDN
-  serviceNetwork: 
+  serviceNetwork:
   - 172.30.0.0/16
 platform:
   none: {}
-pullSecret: '{"auths":{"bastion.hosts.eformat.me:443":{"auth":"b3Bl...","email":""},"bastion.hosts.eformat.me":{"auth":"b3Bl...","email":""}}}'
-sshKey: 'ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAA ...'
+pullSecret: '{"auths":{"bastion.hosts.eformat.me:443":{"auth":"b3BlbnNoaWZ0K2RvY2tlcjpGNEdaT0dVSlFHUUwyUjBFOVZHT0dXWkdRSlIzMkpQTVJJSkEwVzdNR1FEMkxSU05URDM5QlVOQlJYWVpZODRT","email":""},"bastion.hosts.eformat.me":{"auth":"b3BlbnNoaWZ0K2RvY2tlcjpGNEdaT0dVSlFHUUwyUjBFOVZHT0dXWkdRSlIzMkpQTVJJSkEwVzdNR1FEMkxSU05URDM5QlVOQlJYWVpZODRT","email":""}}}'
+sshKey: 'ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAACAQCc/b41rG07PeP0VQyyvTb38xd/OkLywJ7iXDP7jIWyjNcnv6l5eLu1FxNFz6dtw48uh2uJF2HWtEJoMLlW5moOy5WXjgqBQs30Dsy3wYjTb3XK8LEdgDXhq+aBLJ/1s0vGd5KCz1+GSksnVkUKGeOEzAZ+4DTRqnloQhWziberDfySAwSB6HHxMJUQffeHyLHd0AlPsDPxPEfnST5mrOGSEGDLU04NzRSFMWYhwkKBAs4YykEsOExx/zfqSrLONTDulEuR2hRYGEpw0F9wWE39joGjOHIeNx6aOVO+hDisk3g/pBrKf0FZvAVoiA9rbVcX6pajLhjdBaveLQJQXluCEJvqcNICU1yBoILRt4ly3QdpsHhlgqdbZ4LhiYk7AvSy++g5fIfmTfWqWf1a+cwO/R5O/Gb98ZKew57/hXB0d/NNjKY9Ij25g0HDkuxkSytUtaM7dJVovxO4quD8KbnyikjDXMvphZuFKc7UEn0IBuSz2DV941Nl/klFUyxLve2KDL3ivdXyX2z/UsjvZGgz0HRzp+HimOsPU3/wOCSfeRtYltpeXNGtRHqQc8roqLNlzWRfTRBOZkCvAElRlzjkDM8k9u5MySTpu2+VGsjksvVaYUWMAkSjKyjbPKqlFnmBqr6MPL58mSh/yzPee1mGvhfA/WrfSSIgVyMRahSTTQ== mike@hades'
 EOF
 ```
 
@@ -650,11 +648,11 @@ systemctl enable httpd
 systemctl start httpd
 ```
 
-Upload files to web server and check it works (get rhcos image and installer from https://mirror.openshift.com/pub/openshift-v4/dependencies/rhcos/4.2/latest/)
+Upload files to web server and check it works (get rhcos image and installer from https://mirror.openshift.com/pub/openshift-v4/dependencies/rhcos/)
 ```
 sudo cp cluster-foo/*.ign /var/www/html/
 curl http://127.0.0.1:8080/bootstrap.ign
-sudo mv /home/mike/ocp4/rhcos-4.2.0-x86_64-metal-bios.raw.gz /var/www/html/rhcos-4.2.0-x86_64-metal-bios.raw.gz
+sudo mv /home/mike/ocp4/rhcos-4.3.0-x86_64-metal.raw.gz /var/www/html/rhcos-4.3.0-x86_64-metal.raw.gz
 sudo chcon -R -t httpd_sys_content_t /var/www/html/
 ```
 
@@ -881,9 +879,9 @@ etcd-2    IN  CNAME m3.hosts.eformat.me.
 
 Move the installer
 ```
-sudo mv rhcos-4.2.0-x86_64-installer.iso /var/lib/libvirt/images
-sudo chown qemu:qemu /var/lib/libvirt/images/rhcos-4.2.0-x86_64-installer.iso
-sudo restorecon -rv  /var/lib/libvirt/images/rhcos-4.2.0-x86_64-installer.iso
+sudo mv rhcos-4.3.0-x86_64-installer.iso /var/lib/libvirt/images
+sudo chown qemu:qemu /var/lib/libvirt/images/rhcos-4.3.0-x86_64-installer.iso
+sudo restorecon -rv  /var/lib/libvirt/images/rhcos-4.3.0-x86_64-installer.iso
 ```
 
 Create an lvm thin pool (or use pre-existing)
@@ -902,10 +900,10 @@ Bootstrap server
 args='nomodeset rd.neednet=1 ipv6.disable=1 '
 args+='coreos.inst=yes '
 args+='coreos.inst.install_dev=vda '
-args+='coreos.inst.image_url=http://10.0.0.184:8080/rhcos-4.2.0-x86_64-metal-bios.raw.gz '
+args+='coreos.inst.image_url=http://10.0.0.184:8080/rhcos-4.3.0-x86_64-metal.raw.gz '
 args+='coreos.inst.ignition_url=http://10.0.0.184:8080/bootstrap.ign '
 
-virt-install -v --connect=qemu:///system --name bootstrap --ram 10240 --vcpus 4 --hvm --disk path=/dev/fedora/bootstrap -w network=ocp4,model=virtio,mac=52:54:00:b3:7d:1a --noautoconsole -l /var/lib/libvirt/images/rhcos-4.2.0-x86_64-installer.iso,kernel=images/vmlinuz,initrd=images/initramfs.img --extra-args="${args}" --os-variant=rhel7.0
+virt-install -v --connect=qemu:///system --name bootstrap --ram 10240 --vcpus 4 --hvm --disk path=/dev/fedora/bootstrap -w network=ocp4,model=virtio,mac=52:54:00:b3:7d:1a --noautoconsole -l /var/lib/libvirt/images/rhcos-4.3.0-x86_64-installer.iso,kernel=images/vmlinuz,initrd=images/initramfs.img --extra-args="${args}" --os-variant=rhel7.0
 ```
 
 Masters
@@ -913,14 +911,14 @@ Masters
 args='nomodeset rd.neednet=1 ipv6.disable=1 '
 args+='coreos.inst=yes '
 args+='coreos.inst.install_dev=vda '
-args+='coreos.inst.image_url=http://10.0.0.184:8080/rhcos-4.2.0-x86_64-metal-bios.raw.gz '
+args+='coreos.inst.image_url=http://10.0.0.184:8080/rhcos-4.3.0-x86_64-metal.raw.gz '
 args+='coreos.inst.ignition_url=http://10.0.0.184:8080/master.ign '
 
-virt-install -v --connect=qemu:///system --name m1 --ram 10240 --vcpus 4 --hvm --disk path=/dev/fedora/m1 -w network=ocp4,model=virtio,mac=52:54:00:b3:7d:1b --noautoconsole -l /var/lib/libvirt/images/rhcos-4.2.0-x86_64-installer.iso,kernel=images/vmlinuz,initrd=images/initramfs.img --extra-args="${args}" --os-variant=rhel7.0
+virt-install -v --connect=qemu:///system --name m1 --ram 10240 --vcpus 4 --hvm --disk path=/dev/fedora/m1 -w network=ocp4,model=virtio,mac=52:54:00:b3:7d:1b --noautoconsole -l /var/lib/libvirt/images/rhcos-4.3.0-x86_64-installer.iso,kernel=images/vmlinuz,initrd=images/initramfs.img --extra-args="${args}" --os-variant=rhel7.0
 
-virt-install -v --connect=qemu:///system --name m2 --ram 10240 --vcpus 4 --hvm --disk path=/dev/fedora/m2 -w network=ocp4,model=virtio,mac=52:54:00:b3:7d:1c --noautoconsole -l /var/lib/libvirt/images/rhcos-4.2.0-x86_64-installer.iso,kernel=images/vmlinuz,initrd=images/initramfs.img --extra-args="${args}" --os-variant=rhel7.0
+virt-install -v --connect=qemu:///system --name m2 --ram 10240 --vcpus 4 --hvm --disk path=/dev/fedora/m2 -w network=ocp4,model=virtio,mac=52:54:00:b3:7d:1c --noautoconsole -l /var/lib/libvirt/images/rhcos-4.3.0-x86_64-installer.iso,kernel=images/vmlinuz,initrd=images/initramfs.img --extra-args="${args}" --os-variant=rhel7.0
 
-virt-install -v --connect=qemu:///system --name m3 --ram 10240 --vcpus 4 --hvm --disk path=/dev/fedora/m3 -w network=ocp4,model=virtio,mac=52:54:00:b3:7d:1d --noautoconsole -l /var/lib/libvirt/images/rhcos-4.2.0-x86_64-installer.iso,kernel=images/vmlinuz,initrd=images/initramfs.img --extra-args="${args}" --os-variant=rhel7.0
+virt-install -v --connect=qemu:///system --name m3 --ram 10240 --vcpus 4 --hvm --disk path=/dev/fedora/m3 -w network=ocp4,model=virtio,mac=52:54:00:b3:7d:1d --noautoconsole -l /var/lib/libvirt/images/rhcos-4.3.0-x86_64-installer.iso,kernel=images/vmlinuz,initrd=images/initramfs.img --extra-args="${args}" --os-variant=rhel7.0
 ```
 
 Workers
@@ -928,12 +926,12 @@ Workers
 args='nomodeset rd.neednet=1 ipv6.disable=1 '
 args+='coreos.inst=yes '
 args+='coreos.inst.install_dev=vda '
-args+='coreos.inst.image_url=http://10.0.0.184:8080/rhcos-4.2.0-x86_64-metal-bios.raw.gz '
+args+='coreos.inst.image_url=http://10.0.0.184:8080/rhcos-4.3.0-x86_64-metal.raw.gz '
 args+='coreos.inst.ignition_url=http://10.0.0.184:8080/worker.ign '
 
-virt-install -v --connect=qemu:///system --name w1 --ram 10240 --vcpus 4 --hvm --disk path=/dev/fedora/w1 -w network=ocp4,model=virtio,mac=52:54:00:b3:7d:1e --noautoconsole -l /var/lib/libvirt/images/rhcos-4.2.0-x86_64-installer.iso,kernel=images/vmlinuz,initrd=images/initramfs.img --extra-args="${args}" --os-variant=rhel7.0
+virt-install -v --connect=qemu:///system --name w1 --ram 10240 --vcpus 4 --hvm --disk path=/dev/fedora/w1 -w network=ocp4,model=virtio,mac=52:54:00:b3:7d:1e --noautoconsole -l /var/lib/libvirt/images/rhcos-4.3.0-x86_64-installer.iso,kernel=images/vmlinuz,initrd=images/initramfs.img --extra-args="${args}" --os-variant=rhel7.0
 
-virt-install -v --connect=qemu:///system --name w2 --ram 10240 --vcpus 4 --hvm --disk path=/dev/fedora/w2 -w network=ocp4,model=virtio,mac=52:54:00:b3:7d:1f --noautoconsole -l /var/lib/libvirt/images/rhcos-4.2.0-x86_64-installer.iso,kernel=images/vmlinuz,initrd=images/initramfs.img --extra-args="${args}" --os-variant=rhel7.0
+virt-install -v --connect=qemu:///system --name w2 --ram 10240 --vcpus 4 --hvm --disk path=/dev/fedora/w2 -w network=ocp4,model=virtio,mac=52:54:00:b3:7d:1f --noautoconsole -l /var/lib/libvirt/images/rhcos-4.3.0-x86_64-installer.iso,kernel=images/vmlinuz,initrd=images/initramfs.img --extra-args="${args}" --os-variant=rhel7.0
 ```
 
 If needed, clean up all vms
@@ -983,10 +981,8 @@ watch oc get pods --all-namespaces -o wide
 oc get pods --all-namespaces | grep -v -E 'Running|Completed'
 ```
 
-Install and bootstrap cluster
+After some time
 ```
-./openshift-install --dir=cluster-foo wait-for bootstrap-complete --log-level debug
-
 ...
 time="2019-12-18T04:15:12+10:00" level=info msg="API v1.14.6+17b1cc6 up"
 time="2019-12-18T04:15:12+10:00" level=info msg="Waiting up to 30m0s for bootstrapping to complete..."
@@ -1008,11 +1004,6 @@ for vm in bootstrap; do virsh destroy $vm; done; for vm in bootstrap; do virsh u
 Copy kube config
 ```
 cp ocp4/cluster-foo/auth/kubeconfig ~/.kube/config
-```
-
-Install wont finish till registry booted with disk use empty for now
-```
-oc patch configs.imageregistry.operator.openshift.io cluster --type merge --patch '{"spec":{"storage":{"emptyDir":{}}}}'
 ```
 
 Get completion
@@ -1063,7 +1054,7 @@ oc edit image.config.openshift.io/cluster
     - domainName: bastion.hosts.eformat.me
       insecure: false
     - domainName: quay.io
-      insecure: false      
+      insecure: false
   additionalTrustedCA:
     name: bastion-registry-ca
 ```
@@ -1218,12 +1209,30 @@ podman pull --log-level=debug registry.redhat.io/ubi8/ubi-minimal@sha256:a5e923d
 
 ### OLM
 
+Build an operator catalog image tag and push to mirror registry
+```
+oc adm catalog build \
+    --appregistry-endpoint https://quay.io/cnr \
+    --appregistry-org redhat-operators \
+    --to=bastion.hosts.eformat.me:443/openshift/redhat-operators:v1
+
+oc adm catalog build \
+    --appregistry-endpoint https://quay.io/cnr \
+    --appregistry-org community-operators \
+    --to=bastion.hosts.eformat.me:443/openshift/community-operators:v1
+
+oc adm catalog build \
+    --appregistry-endpoint https://quay.io/cnr \
+    --appregistry-org certified-operators \
+    --to=bastion.hosts.eformat.me:443/openshift/certified-operators:v1
+```
+
 Disable the default OperatorSources
 ```
 oc patch OperatorHub cluster --type json -p '[{"op": "add", "path": "/spec/disableAllDefaultSources", "value": true}]'
 ```
 
-Can also specify individual sources to disable (needed to do this for upgrade to 4.2.12 to work as expected)
+Can also specify individual sources to disable
 ```
 apiVersion: v1
 items:
@@ -1243,6 +1252,33 @@ items:
       name: certified-operators
 ```
 
+Extract the contents of your custom Operator catalog image to generate manifests required for mirroring
+```
+oc adm catalog mirror \
+    bastion.hosts.eformat.me:443/openshift/redhat-operators:v1 \
+    bastion.hosts.eformat.me:443/openshift
+```
+	
+If any invalid source tags are found, remove the offending mappings from your mapping.txt file and pass the file to the oc image mirror command to continue.
+
+Apply the manifests (CatalogSource)
+```
+oc apply -f ./redhat-operators-manifests
+```
+
+Wait for changes to rollout to nodes.
+```
+watch oc get nodes
+
+# verify
+oc get pods -n openshift-marketplace
+oc get catalogsource -n openshift-marketplace
+oc get packagemanifest -n openshift-marketplace
+```
+
+You should also be able to view them from the OperatorHub page in the web console.
+
+#### (OLD) 4.2 Instructions
 
 Get all manifests for all operator namespaces (redhat-operators community-operators certified-operators)
 ```
@@ -1307,7 +1343,7 @@ tree
 
 Edit *clusterserviceversion.yaml and change
 
-- OperatorImage from quay.io to your mirror image registry
+- OperatorImage from quay.io, registry.redhat.io to your mirror image registry
 - OR registry.redhat.io imagetag to an registry.redhat.io image digest
 
 Remove unwanted versions and list images in the version we want (1.3.0 in this case)
@@ -1354,7 +1390,7 @@ oc image mirror registry.redhat.io/amq7/amq-streams-kafka-23:1.3.0 bastion.hosts
 oc image mirror registry.redhat.io/amq7/amq-streams-operator:1.3.0 bastion.hosts.eformat.me:443/openshift/amq-streams-operator:1.3.0
 ```
 
-Create olm custom registry image 
+Create olm custom registry image
 ```
 cd ~/git/openshift-disconnected
 
@@ -1552,10 +1588,10 @@ vgchange -ay -K fedora
 args='nomodeset rd.neednet=1 ipv6.disable=1 '
 args+='coreos.inst=yes '
 args+='coreos.inst.install_dev=vda '
-args+='coreos.inst.image_url=http://10.0.0.184:8080/rhcos-4.2.0-x86_64-metal-bios.raw.gz '
+args+='coreos.inst.image_url=http://10.0.0.184:8080/rhcos-4.3.0-x86_64-metal.raw.gz '
 args+='coreos.inst.ignition_url=http://10.0.0.184:8080/worker.ign '
 
-virt-install -v --connect=qemu:///system --name w3 --ram 10240 --vcpus 4 --hvm --disk path=/dev/fedora/w3 -w network=ocp4,model=virtio,mac=52:54:00:b3:7d:2a --noautoconsole -l /var/lib/libvirt/images/rhcos-4.2.0-x86_64-installer.iso,kernel=images/vmlinuz,initrd=images/initramfs.img --extra-args="${args}" --os-variant=rhel7.0
+virt-install -v --connect=qemu:///system --name w3 --ram 10240 --vcpus 4 --hvm --disk path=/dev/fedora/w3 -w network=ocp4,model=virtio,mac=52:54:00:b3:7d:2a --noautoconsole -l /var/lib/libvirt/images/rhcos-4.3.0-x86_64-installer.iso,kernel=images/vmlinuz,initrd=images/initramfs.img --extra-args="${args}" --os-variant=rhel7.0
 
 oc get csr -o name | xargs oc adm certificate approve
 ```
@@ -1570,3 +1606,139 @@ oc delete node w3
 
 for vm in w3; do virsh destroy $vm; done; for vm in w3; do virsh undefine $vm; done; for lv in w3; do lvremove -f fedora/$lv; done
 ```
+
+
+### OLM for OCS
+
+
+```
+./get-operator-package.sh
+```
+
+tree olm-4.3/manifests/redhat-operators/ocs-operator
+```
+.
+└── ocs-operator-oya7qeh9
+    ├── 4.2.1
+    │   ├── backingstore.crd.yaml
+    │   ├── bucketclass.crd.yaml
+    │   ├── cephblockpool.crd.yaml
+    │   ├── cephcluster.crd.yaml
+    │   ├── cephfilesystem.crd.yaml
+    │   ├── cephnfs.crd.yaml
+    │   ├── cephobjectstore.crd.yaml
+    │   ├── cephobjectstoreuser.crd.yaml
+    │   ├── noobaa.crd.yaml
+    │   ├── noobaa-metrics-role_binding.yaml
+    │   ├── noobaa-metrics-role.yaml
+    │   ├── objectbucketclaim.crd.yaml
+    │   ├── objectbucket.crd.yaml
+    │   ├── ocsinitialization.crd.yaml
+    │   ├── ocs-operator.v4.2.1.clusterserviceversion.yaml
+    │   ├── rook-metrics-role_binding.yaml
+    │   ├── rook-metrics-role.yaml
+    │   ├── rook-monitor-role_binding.yaml
+    │   ├── rook-monitor-role.yaml
+    │   ├── storagecluster.crd.yaml
+    │   └── storageclusterinitialization.crd.yaml
+    └── ocs-operator.package.yaml
+```
+
+Edit *clusterserviceversion.yaml and change
+
+- OperatorImage from quay.io,registry.redhat.io to your mirror image registry
+- OR registry.redhat.io imagetag to an registry.redhat.io image digest
+
+Remove unwanted versions and list images in the version we want (4.2.1 in this case)
+
+Replace with our quay registry
+```
+cd olm-4.3/manifests/redhat-operators/ocs-operator/ocs-operator-oya7qeh9/4.2.1
+# replace
+sed -i 's|registry.redhat.io/ocs4|bastion.hosts.eformat.me:443/openshift|' ocs-operator.v4.2.1.clusterserviceversion.yaml
+sed -i 's|registry.redhat.io/openshift4|bastion.hosts.eformat.me:443/openshift|' ocs-operator.v4.2.1.clusterserviceversion.yaml
+sed -i 's|registry.redhat.io/rhscl|bastion.hosts.eformat.me:443/openshift|' ocs-operator.v4.2.1.clusterserviceversion.yaml
+# check
+cat ocs-operator.*.clusterserviceversion.yaml | grep bastion.hosts.eformat.me:443
+```
+
+Mirror all images required for operator. If image referenced by digest (as they are here), leave destination version blank.
+```
+oc image mirror registry.redhat.io/ocs4/cephcsi-rhel8@sha256:9ed0e2cd003189634c5ec43ec716a698c6779513fe37fe1f8433b3e8c5742281 bastion.hosts.eformat.me:443/openshift/cephcsi-rhel8
+
+oc image mirror registry.redhat.io/ocs4/rook-ceph-rhel8-operator@sha256:5feddbd9232657b2828dc9ce617204cfccef09b692ded624e29ce5af9928759d bastion.hosts.eformat.me:443/openshift/rook-ceph-rhel8-operator
+
+oc image mirror registry.redhat.io/ocs4/mcg-rhel8-operator@sha256:ecb1c4e486aca77bda000fa71d190f90e06173447cff1bed983fb6e246975863 bastion.hosts.eformat.me:443/openshift/mcg-rhel8-operator
+
+oc image mirror registry.redhat.io/ocs4/rhceph-rhel8@sha256:b299023c03a0a2708970a7d752d35b97ebd651e48e80b7e751a29f65910dfc50 bastion.hosts.eformat.me:443/openshift/rhceph-rhel8
+
+oc image mirror registry.redhat.io/ocs4/mcg-core-rhel8@sha256:1906a018df2774f1d0338483255c5f314fe707afcf12271f53a346790de9fdcf bastion.hosts.eformat.me:443/openshift/mcg-core-rhel8
+
+oc image mirror registry.redhat.io/ocs4/ocs-rhel8-operator@sha256:e7c9490b5d8d430d25f269548a3cfec2f5f6669e3950f9c3418a429a9ce492aa bastion.hosts.eformat.me:443/openshift/ocs-rhel8-operator
+
+oc image mirror registry.redhat.io/rhscl/mongodb-36-rhel7@sha256:506e4daa19721199e35249f2e0e67b02cbcbee1fed653f7eb91d5595b74c3bf8 bastion.hosts.eformat.me:443/openshift/mongodb-36-rhel7
+
+oc image mirror registry.redhat.io/openshift4/ose-csi-driver-registrar@sha256:9f8ccdedc5d098511d9916dae2025ac582a866a249359d93380fef73cf95a6b2 bastion.hosts.eformat.me:443/openshift/ose-csi-driver-registrar
+
+oc image mirror registry.redhat.io/openshift4/ose-csi-external-provisioner-rhel7@sha256:14d44f928b387e14c2c35743903d1b020ba3c52b431564d9a05c4fb5cac8899a bastion.hosts.eformat.me:443/openshift/ose-csi-external-provisioner-rhel7
+
+oc image mirror registry.redhat.io/openshift4/ose-csi-external-attacher@sha256:0b70bbe8b7f9a5396d6fc3142f0e6542d3dd7b8d2c20d59eba17dd07bd4dbaf8 bastion.hosts.eformat.me:443/openshift/ose-csi-external-attacher
+```
+
+Create olm custom registry image
+```
+cd ~/git/openshift-disconnected
+
+cat <<EOF > Dockerfile.olm
+FROM registry.redhat.io/openshift4/ose-operator-registry:latest AS builder
+COPY olm-4.3/manifests/ocs-operator/ocs-operator-oya7qeh9 manifests
+RUN /bin/initializer -o ./bundles.db
+FROM registry.redhat.io/ubi8/ubi-minimal:latest
+COPY --from=builder /registry/bundles.db /bundles.db
+COPY --from=builder /usr/bin/registry-server /registry-server
+COPY --from=builder /usr/bin/grpc_health_probe /bin/grpc_health_probe
+
+EXPOSE 50051
+ENTRYPOINT ["/registry-server"]
+CMD ["--database", "bundles.db"]
+EOF
+```
+
+Build and push to quay
+```
+# localhost
+docker build -f Dockerfile.olm -t quay.io/eformat/custom-registry:latest .
+docker push quay.io/eformat/custom-registry:latest
+# bastion
+docker pull quay.io/eformat/custom-registry:latest
+docker tag quay.io/eformat/custom-registry:latest bastion.hosts.eformat.me:443/openshift/custom-registry:latest
+docker push bastion.hosts.eformat.me:443/openshift/custom-registry
+```
+
+Create a CatalogSource pointing to the new Operator catalog image
+```
+cat <<EOF | oc apply -f -
+apiVersion: operators.coreos.com/v1alpha1
+kind: CatalogSource
+metadata:
+  name: my-operator-catalog
+  namespace: openshift-marketplace
+spec:
+  displayName: My Operator Catalog
+  sourceType: grpc
+  image: bastion.hosts.eformat.me:443/openshift/custom-registry:latest
+EOF
+```
+
+Verify deployment
+```
+oc get catalogsource -n openshift-marketplace
+NAME                  DISPLAY               TYPE   PUBLISHER   AGE
+my-operator-catalog   My Operator Catalog   grpc               11s
+
+oc get packagemanifest -n openshift-marketplace
+NAME           CATALOG               AGE
+ocs-operator   My Operator Catalog   89s
+```
+
+You should also be able to view them from the OperatorHub page in the web console and install ocs operator
