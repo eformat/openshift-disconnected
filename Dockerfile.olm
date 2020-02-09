@@ -1,5 +1,6 @@
 FROM registry.redhat.io/openshift4/ose-operator-registry:latest AS builder
 COPY olm-4.3/manifests/ocs-operator/ocs-operator-oya7qeh9 manifests
+COPY olm-4.3/manifests/community-operators/container-security-operator/container-security-operator-u8bgugko manifests
 RUN /bin/initializer -o ./bundles.db
 FROM registry.redhat.io/ubi8/ubi-minimal:latest
 COPY --from=builder /registry/bundles.db /bundles.db

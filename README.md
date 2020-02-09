@@ -21,12 +21,17 @@ Steps
 5. [Install olm disconnected](#olm)
 
    - https://docs.openshift.com/container-platform/4.3/operators/olm-restricted-networks.html
+   - [ocs storage disconnected](#olm-for-ocs)  
 
 6. [Install samples disconnected](#samples-operator)
 
    - https://docs.openshift.com/container-platform/4.3/installing/installing_restricted_networks/installing-restricted-networks-preparations.html#installation-restricted-network-samples_installing-restricted-networks-preparations
 
 7. [Update cluster versions disconnected](#update-cluster-to-new-version)
+
+8. [Install Clair Scanner](#clair)
+
+   - https://access.redhat.com/documentation/en-us/red_hat_quay/3/html/manage_red_hat_quay/quay-security-scanner#set_up_clair_in_the_red_hat_quay_config_tool
 
 
 ### Quay
@@ -393,7 +398,7 @@ eformat / <password>
 ```
 
 Create an new Organization (openshift)
-Create a public Repository (ocp4) 
+Create a public Repository (ocp4)
 Create a Robot Account (docker)
   - admin permissions on the ocp4 repository
   - make robot account as team member of organisation
@@ -1257,13 +1262,35 @@ Extract the contents of your custom Operator catalog image to generate manifests
 oc adm catalog mirror \
     bastion.hosts.eformat.me:443/openshift/redhat-operators:v1 \
     bastion.hosts.eformat.me:443/openshift
+
+oc adm catalog mirror \
+    bastion.hosts.eformat.me:443/openshift/community-operators:v1 \
+    bastion.hosts.eformat.me:443
+
+oc adm catalog mirror \
+    bastion.hosts.eformat.me:443/openshift/certified-operators:v1 \
+    bastion.hosts.eformat.me:443
 ```
-	
-If any invalid source tags are found, remove the offending mappings from your mapping.txt file and pass the file to the oc image mirror command to continue.
+
+If any invalid source tags are found, remove the offending mappings from your `mapping.txt` file and pass the file to the `oc image mirror` command to continue.
 
 Apply the manifests (CatalogSource)
 ```
-oc apply -f ./redhat-operators-manifests
+oc apply -f ./redhat-operators-manifests/imageContentSourcePolicy.yaml
+```
+
+Create a CatalogSource object that references your catalog image.
+```
+apiVersion: operators.coreos.com/v1alpha1
+kind: CatalogSource
+metadata:
+  name: my-redhat-operators-catalog
+  namespace: openshift-marketplace
+spec:
+  sourceType: grpc
+  image: bastion.hosts.eformat.me:443/openshift/redhat-operators:v1
+  displayName: My Red Hat Operator Catalog
+  publisher: grpc
 ```
 
 Wait for changes to rollout to nodes.
@@ -1386,7 +1413,7 @@ Sync all needed images from Quay.io to your mirror registry
 ```
 oc image mirror registry.redhat.io/amq7/amq-streams-bridge:1.3.0 bastion.hosts.eformat.me:443/openshift/amq-streams-bridge:1.3.0
 oc image mirror registry.redhat.io/amq7/amq-streams-kafka-22:1.3.0 bastion.hosts.eformat.me:443/openshift/amq-streams-kafka-22:1.3.0
-oc image mirror registry.redhat.io/amq7/amq-streams-kafka-23:1.3.0 bastion.hosts.eformat.me:443/openshift/amq-streams-kafka-23:1.3.0
+oc image mirror registry.redhat.io/a    mq7/amq-streams-kafka-23:1.3.0 bastion.hosts.eformat.me:443/openshift/amq-streams-kafka-23:1.3.0
 oc image mirror registry.redhat.io/amq7/amq-streams-operator:1.3.0 bastion.hosts.eformat.me:443/openshift/amq-streams-operator:1.3.0
 ```
 
@@ -1607,9 +1634,9 @@ oc delete node w3
 for vm in w3; do virsh destroy $vm; done; for vm in w3; do virsh undefine $vm; done; for lv in w3; do lvremove -f fedora/$lv; done
 ```
 
-
 ### OLM for OCS
 
+This uses 4.2 commands until 4.3 docs merge with fixes
 
 ```
 ./get-operator-package.sh
@@ -1742,3 +1769,236 @@ ocs-operator   My Operator Catalog   89s
 ```
 
 You should also be able to view them from the OperatorHub page in the web console and install ocs operator
+
+### Clair
+
+Clair is am image scanner. Fully disconnected CVE sources is not yet part of Cair, see:  
+
+- https://github.com/quay/clair/issues/401#issuecomment-443161100
+
+Setup clait for quay basic.
+
+Stop existing containers.
+```
+docker stop mirroring-worker quay
+```
+
+Configuring Quay
+```
+export QUAY_PASSWORD=<password>
+docker run --name=quay-config --privileged=true -p 8443:8443 -d quay.io/redhat/quay:v3.2.0 config $QUAY_PASSWORD
+```
+
+Open browser and login
+```
+## ssh to remote host
+## add to ~/.ssh/config
+	LocalForward 8443 192.168.140.200:8443
+	LocalForward 3306 192.168.140.200:3306
+	LocalForward 6379 192.168.140.200:6379
+##
+
+https://localhost:8443
+quayconfig / $QUAY_PASSWORD
+```
+
+Upload existing `quay-config.tar.gz` configuration
+
+Scroll to the Security Scanner section and select the "Enable Security Scanning" checkbox
+
+Click Create Key, then from the pop-up window type a name for the Clair private key and an optional expiration date (if blank, the key never expires). Then select Generate Key.
+
+Download `security_scanner` Service Key and pem file
+
+Set a Clair Scanning Service Endpoint (You may set TLS here if you use certs)
+```
+http://clair.hosts.eformat.me:6060
+```
+
+Stop config pod
+```
+docker stop quay-config
+```
+
+Copy new Config files
+```
+scp /tmp/quay-config.tar.gz bastion:/mnt/quay/config/
+ssh bastion
+cd /mnt/quay/config/
+tar xvf quay-config.tar.gz
+```
+
+Start
+```
+docker start mirroring-worker quay
+```
+
+Setup and deploy Clair and its database.
+
+Start a postgres instance on bastion host
+```
+lvcreate -L10G -n postgres cinder-volumes
+mkdir -p /var/lib/pgsql/data
+mke2fs -t ext4 /dev/cinder-volumes/postgres
+mount /dev/cinder-volumes/postgres /var/lib/pgsql/data
+echo "/dev/cinder-volumes/postgres /var/lib/pgsql/data  ext4     defaults,nofail        0 0" >> /etc/fstab
+chmod -R 777 /var/lib/pgsql
+
+export POSTGRES_CONTAINER_NAME=postgres
+export POSTGRESQL_DATABASE=clairtest
+export POSTGRESQL_USER=clairuser
+export POSTGRESQL_PASSWORD=<password>
+export POSTGRESQL_ADMIN_PASSWORD=<password>
+
+docker run \
+    --detach \
+    --restart=always \
+    --env POSTGRESQL_USER=${POSTGRESQL_USER} \
+    --env POSTGRESQL_PASSWORD=${POSTGRESQL_PASSWORD} \
+    --env POSTGRESQL_DATABASE=${POSTGRESQL_DATABASE} \
+    --env POSTGRESQL_ADMIN_PASSWORD=${POSTGRESQL_ADMIN_PASSWORD} \
+    --name ${POSTGRES_CONTAINER_NAME} \
+    --privileged=true \
+    --publish 5432:5432 \
+    -v /var/lib/pgsql/data:/var/lib/pgsql/data:Z \
+    registry.access.redhat.com/rhscl/postgresql-10-rhel7
+
+docker logs postgres -f
+```
+
+Test connection
+```
+docker exec -it postgres bash
+psql -h localhost -d clairtest -U clairuser
+```
+
+Pull Clair image
+```
+docker pull quay.io/redhat/clair-jwt:v3.2.0
+mkdir -p /mnt/clair/config/
+```
+
+Move downloaded scanner pem to config dir
+```
+mv /tmp/security_scanner.pem /mnt/clair/config/
+```
+
+Clair config single instance
+```
+export QUAY_ENDPOINT=https://bastion.hosts.eformat.me:443
+export CLAIR_ENDPOINT=http://clair.hosts.eformat.me:6060
+export CLAIR_SERVICE_KEY_ID=<clair service key id>
+export POSTGRES_CONNECTION_STRING=postgresql://clairuser:password@192.168.140.200:5432/clairtest?sslmode=disable
+
+cat <<EOF > /mnt/clair/config/config.yaml
+clair:
+  database:
+    type: pgsql
+    options:
+      # A PostgreSQL Connection string pointing to the Clair Postgres database.
+      # Documentation on the format can be found at: http://www.postgresql.org/docs/9.4/static/libpq-connect.html
+      source: ${POSTGRES_CONNECTION_STRING}
+      cachesize: 16384
+  api:
+    # The port at which Clair will report its health status. For example, if Clair is running at
+    # https://clair.mycompany.com, the health will be reported at
+    # http://clair.mycompany.com:6061/health.
+    healthport: 6061
+
+    port: 6062
+    timeout: 900s
+
+    # paginationkey can be any random set of characters. *Must be the same across all Clair instances*.
+    paginationkey:
+
+  updater:
+    # interval defines how often Clair will check for updates from its upstream vulnerability databases.
+    interval: 6h
+    notifier:
+      attempts: 3
+      renotifyinterval: 1h
+      http:
+        # QUAY_ENDPOINT defines the endpoint at which Quay is running.
+        # For example: https://myregistry.mycompany.com
+        endpoint: ${QUAY_ENDPOINT}/secscan/notify
+        proxy: http://localhost:6063
+
+jwtproxy:
+  signer_proxy:
+    enabled: true
+    listen_addr: :6063
+    ca_key_file: /certificates/mitm.key # Generated internally, do not change.
+    ca_crt_file: /certificates/mitm.crt # Generated internally, do not change.
+    signer:
+      issuer: security_scanner
+      expiration_time: 5m
+      max_skew: 1m
+      nonce_length: 32
+      private_key:
+        type: preshared
+        options:
+          key_id: ${CLAIR_SERVICE_KEY_ID}
+          private_key_path: /clair/config/security_scanner.pem
+
+  verifier_proxies:
+  - enabled: true
+    # The port at which Clair will listen.
+    listen_addr: :6060
+
+    # If Clair is to be served via TLS, uncomment these lines. See the "Running Clair under TLS"
+    # section below for more information.
+    #key_file: /clair/config/clair.key
+    #crt_file: /clair/config/clair.crt
+
+    verifier:
+      # CLAIR_ENDPOINT is the endpoint at which this Clair will be accessible. Note that the port
+      # specified here must match the listen_addr port a few lines above this.
+      # Example: https://myclair.mycompany.com:6060
+      audience: ${CLAIR_ENDPOINT}
+
+      upstream: http://localhost:6062
+      key_server:
+        type: keyregistry
+        options:
+          # QUAY_ENDPOINT defines the endpoint at which Quay is running.
+          # Example: https://myregistry.mycompany.com
+          registry: ${QUAY_ENDPOINT}/keys/
+EOF
+```
+
+Run Clair
+```
+export CLAIR_CONTAINER_NAME=clair
+
+docker run \
+   --detach \
+   --restart=always \
+   --name ${CLAIR_CONTAINER_NAME} \
+   -p 6060:6060 \
+   -p 6061:6061 \
+   -v /mnt/clair/config:/clair/config:Z \
+   -v /mnt/clair/config/cacert.crt:/etc/pki/ca-trust/source/anchors/ca.crt:Z  \
+   --privileged=true \
+   --net=host \
+   quay.io/redhat/clair-jwt:v3.2.0
+
+docker logs clair -f
+```
+
+Test health endpoint
+```
+curl -X GET -I http://clair.hosts.eformat.me:6061/health
+
+HTTP/1.1 200 OK
+Server: clair
+Date: Fri, 07 Feb 2020 07:34:10 GMT
+Content-Length: 0
+```
+
+You should see scans being queued and reported in Quay.
+
+`Next Steps` - Integrate clair results with OpenShift using the `Container Security Operator`
+
+Go to Operators → OperatorHub (select Security) to see the available Container Security Operator.
+
+- https://access.redhat.com/documentation/en-us/red_hat_quay/3/html/manage_red_hat_quay/container-security-operator-setup
