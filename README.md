@@ -1888,7 +1888,7 @@ Clair config single instance
 export QUAY_ENDPOINT=https://bastion.hosts.eformat.me:443
 export CLAIR_ENDPOINT=http://clair.hosts.eformat.me:6060
 export CLAIR_SERVICE_KEY_ID=<clair service key id>
-export POSTGRES_CONNECTION_STRING=postgresql://clairuser:password@192.168.140.200:5432/clairtest?sslmode=disable
+export POSTGRES_CONNECTION_STRING=postgresql://clairuser:<password>@192.168.140.200:5432/clairtest?sslmode=disable
 
 cat <<EOF > /mnt/clair/config/config.yaml
 clair:
