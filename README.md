@@ -1776,7 +1776,7 @@ Clair is am image scanner. Fully disconnected CVE sources is not yet part of Cai
 
 - https://github.com/quay/clair/issues/401#issuecomment-443161100
 
-Setup clait for quay basic.
+Setup clair for quay basic.
 
 Stop existing containers.
 ```
