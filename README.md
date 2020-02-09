@@ -200,7 +200,7 @@ virsh edit bastion
 
 Subscribe VM
 ```
-subscription-manager register --username=rhn-sa-mhepburn --password=<password>
+subscription-manager register --username=<username> --password=<password>
 subscription-manager subscribe --pool=8a85f99a6ae5e464016b251793900683
 subscription-manager repos --disable="*" --enable="rhel-7-server-rpms" --enable="rhel-7-server-extras-rpms"
 yum update -y
