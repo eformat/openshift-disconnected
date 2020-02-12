@@ -1274,6 +1274,14 @@ oc adm catalog mirror \
 
 If any invalid source tags are found, remove the offending mappings from your `mapping.txt` file and pass the file to the `oc image mirror` command to continue.
 
+- Remove duplicates
+- Alter destination repo to match quay (i.e. no sub repositories allowed <registry>:<port>:/openshift/<image-name>)
+
+Mirror images
+```
+oc image mirror -f ./redhat-operators-manifests/mapping.txt
+```
+
 Apply the manifests (CatalogSource)
 ```
 oc apply -f ./redhat-operators-manifests/imageContentSourcePolicy.yaml
@@ -1281,6 +1289,7 @@ oc apply -f ./redhat-operators-manifests/imageContentSourcePolicy.yaml
 
 Create a CatalogSource object that references your catalog image.
 ```
+cat <<EOF | oc apply -f -
 apiVersion: operators.coreos.com/v1alpha1
 kind: CatalogSource
 metadata:
@@ -1291,6 +1300,7 @@ spec:
   image: bastion.hosts.eformat.me:443/openshift/redhat-operators:v1
   displayName: My Red Hat Operator Catalog
   publisher: grpc
+EOF
 ```
 
 Wait for changes to rollout to nodes.
@@ -1533,6 +1543,8 @@ spec:
   skippedImagestreams:
     - <list>
 ```
+
+The Cluster Samples Operator is responsible for providing a list of ImageStreams and Templates that are to be made available in an OpenShift environment.
 
 ### Update cluster to new version
 
