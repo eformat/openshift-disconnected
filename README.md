@@ -489,9 +489,9 @@ Copy Quay openshift+docker robot credentials to ~/.docker/config.json
 
 Mirror repository variables
 ```
-export OCP_RELEASE=4.3.0-x86_64
+export OCP_RELEASE=4.3.3-x86_64
 export LOCAL_REGISTRY='bastion.hosts.eformat.me:443'
-export LOCAL_REPOSITORY='openshift/ocp4.3.0-x86_64'
+export LOCAL_REPOSITORY='openshift/ocp4.3.3-x86_64'
 export PRODUCT_REPO='openshift-release-dev'
 export LOCAL_SECRET_JSON='/home/mike/.docker/config.json'
 export RELEASE_NAME="ocp-release"
@@ -1574,21 +1574,14 @@ cat <<EOF | oc apply -f -
 apiVersion: operator.openshift.io/v1alpha1
 kind: ImageContentSourcePolicy
 metadata:
-  name: image-policy-4214-0
+  name: image-policy-433
 spec:
   repositoryDigestMirrors:
   - mirrors:
-    - bastion.hosts.eformat.me:443/openshift/ocp4.2.14-x86_64
+    - bastion.hosts.eformat.me:443/openshift/ocp4.3.3-x86_64
     source: quay.io/openshift-release-dev/ocp-release
----
-apiVersion: operator.openshift.io/v1alpha1
-kind: ImageContentSourcePolicy
-metadata:
-  name: image-policy-4214-1
-spec:
-  repositoryDigestMirrors:
   - mirrors:
-    - bastion.hosts.eformat.me:443/openshift/ocp4.2.14-x86_64
+    - bastion.hosts.eformat.me:443/openshift/ocp4.3.3-x86_64
     source: quay.io/openshift-release-dev/ocp-v4.0-art-dev
 EOF
 ```
@@ -1609,7 +1602,7 @@ w2     Ready      worker   3d22h   v1.14.6+cebabbf4a
 
 Upgrade cluster using new repository
 ```
-oc adm upgrade --to-image bastion.hosts.eformat.me:443/openshift/ocp4.2.13:4.2.13 --allow-explicit-upgrade --force
+oc adm upgrade --to-image bastion.hosts.eformat.me:443/openshift/ocp4.3.3-x86_64:4.3.3-x86_64 --allow-explicit-upgrade --force
 ```
 
 Downgrade (needed to do this to set samples operator to Removed)
