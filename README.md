@@ -33,6 +33,10 @@ Steps
 
    - https://access.redhat.com/documentation/en-us/red_hat_quay/3/html/manage_red_hat_quay/quay-security-scanner#set_up_clair_in_the_red_hat_quay_config_tool
 
+8. [Multus](#multus)
+
+    - https://docs.openshift.com/container-platform/4.3/networking/multiple_networks/attaching-pod.html
+
 
 ### Quay
 
@@ -2007,3 +2011,208 @@ You should see scans being queued and reported in Quay.
 Go to Operators → OperatorHub (select Security) to see the available Container Security Operator.
 
 - https://access.redhat.com/documentation/en-us/red_hat_quay/3/html/manage_red_hat_quay/container-security-operator-setup
+
+
+### Multus
+
+macvlan
+```
+oc new-project multus
+
+cat <<EOF | oc apply -f -
+apiVersion: "k8s.cni.cncf.io/v1"
+kind: NetworkAttachmentDefinition 
+metadata:
+  name: macvlan-conf 
+spec:
+  config: '{ 
+      "cniVersion": "0.3.0",
+      "type": "macvlan",
+      "master": "ens3",
+      "mode": "bridge",
+      "ipam": {
+        "type": "host-local",
+        "subnet": "192.168.140.0/24",
+        "rangeStart": "192.168.140.120",
+        "rangeEnd": "192.168.140.140",
+        "routes": [
+          { "dst": "0.0.0.0/0" }
+        ],
+        "gateway": "192.168.140.1"
+      }
+    }'
+EOF
+
+oc get network-attachment-definitions.k8s.cni.cncf.io
+oc delete network-attachment-definitions.k8s.cni.cncf.io macvlan-conf
+
+# To create a Pod that uses the additional interface
+
+cat <<EOF | oc apply -f -
+apiVersion: v1
+kind: Pod
+metadata:
+  name: samplepod
+  annotations:
+    k8s.v1.cni.cncf.io/networks: macvlan-conf 
+spec:
+  containers:
+  - name: samplepod
+    command: ["/bin/bash", "-c", "sleep infinity"]
+    image: centos/tools
+EOF
+
+oc exec -it samplepod -- ip -4 addr
+
+1: lo: <LOOPBACK,UP,LOWER_UP> mtu 65536 qdisc noqueue state UNKNOWN group default qlen 1000
+    inet 127.0.0.1/8 scope host lo
+       valid_lft forever preferred_lft forever
+3: eth0@if15: <BROADCAST,MULTICAST,UP,LOWER_UP> mtu 1450 qdisc noqueue state UP group default  link-netnsid 0
+    inet 10.129.0.6/23 brd 10.129.1.255 scope global eth0
+       valid_lft forever preferred_lft forever
+4: net1@if2: <BROADCAST,MULTICAST,UP,LOWER_UP> mtu 1500 qdisc noqueue state UP group default  link-netnsid 0
+    inet 192.168.140.125/24 brd 192.168.140.255 scope global net1
+       valid_lft forever preferred_lft forever
+```
+
+PCI Passthrough second nic, baremetal, libvirt, multus
+```
+NICs on my NUC bare metal host
+
+enp0s31f6: flags=4163<UP,BROADCAST,RUNNING,MULTICAST>  mtu 1500
+        inet 192.168.86.112 netmask 255.255.255.0  broadcast 192.168.86.1
+        inet6 fe80::e048:d292:57e6:9d18  prefixlen 64  scopeid 0x20<link>
+        inet6 2001:8003:64de:7300:b28c:685b:99d:8b35  prefixlen 64  scopeid 0x0<global>
+        inet6 2001:8003:64de:7300::8c5  prefixlen 128  scopeid 0x0<global>
+        ether 54:b2:03:04:90:0f  txqueuelen 1000  (Ethernet)
+        RX packets 493  bytes 66593 (65.0 KiB)
+        RX errors 0  dropped 0  overruns 0  frame 0
+        TX packets 1849  bytes 2304023 (2.1 MiB)
+        TX errors 0  dropped 0 overruns 0  carrier 0  collisions 0
+        device interrupt 16  memory 0xdc100000-dc120000  
+
+enp5s0: flags=4163<UP,BROADCAST,RUNNING,MULTICAST>  mtu 1500
+        inet 10.0.0.184  netmask 255.255.255.0  broadcast 10.0.0.255
+        inet6 2001:8003:64de:7300:68f0:d2ec:4d69:2154  prefixlen 64  scopeid 0x0<global>
+        inet6 fe80::9d3a:9c80:f15b:984f  prefixlen 64  scopeid 0x20<link>
+        ether 54:b2:03:04:90:10  txqueuelen 1000  (Ethernet)
+        RX packets 6931763  bytes 8193474580 (7.6 GiB)
+        RX errors 0  dropped 0  overruns 0  frame 0
+        TX packets 4904665  bytes 978923158 (933.5 MiB)
+        TX errors 0  dropped 0 overruns 0  carrier 0  collisions 0
+        device memory 0xdc000000-dc01ffff
+
+Workout which pci device is which:
+
+lspci | grep -i ether
+00:1f.6 Ethernet controller: Intel Corporation Ethernet Connection (2) I219-LM (rev 31)
+05:00.0 Ethernet controller: Intel Corporation I210 Gigabit Network Connection (rev 03)
+
+cd /sys/bus/pci/devices
+cd 0000:05:00.0
+cd net/
+ls
+enp5s0
+
+cd /sys/bus/pci/devices
+cd 0000:00:1f.6
+cd net/
+ls
+enp0s31f6
+```
+
+Pass this device through to libvirt using the `--host-device` argument
+```
+virsh nodedev-list | grep pci | grep 1f_6
+
+--host-device=pci_0000_00_1f_6
+```
+
+Note - you may need to enable `pci passthrough` is enabled in the kernel by checking:
+```
+virt-host-validate
+
+  QEMU: Checking if IOMMU is enabled by kernel                               : WARN (IOMMU appears to be disabled in kernel. Add intel_iommu=on to kernel cmdline arguments)
+
+vi /etc/default/grub
+# add intel_iommu=on to GRUB_CMDLINE_LINUX
+grub2-mkconfig -o /boot/efi/EFI/fedora/grub.cfg
+```
+
+Add new worker node `w3`
+```
+for vm in w3; do lvcreate --virtualsize 100G --name $vm -T fedora/thin_pool2; done
+vgchange -ay -K fedora
+
+args='nomodeset rd.neednet=1 ipv6.disable=1 '
+args+='coreos.inst=yes '
+args+='coreos.inst.install_dev=vda '
+args+='coreos.inst.image_url=http://10.0.0.184:8080/rhcos-4.3.0-x86_64-metal.raw.gz '
+args+='coreos.inst.ignition_url=http://10.0.0.184:8080/worker.ign '
+
+virt-install -v --connect=qemu:///system --name w3 --ram 10240 --vcpus 4 --hvm --disk path=/dev/fedora/w3 -w network=ocp4,model=virtio,mac=52:54:00:b3:7d:2a --noautoconsole -l /var/lib/libvirt/images/rhcos-4.3.0-x86_64-installer.iso,kernel=images/vmlinuz,initrd=images/initramfs.img --extra-args="${args}" --os-variant=rhel7.0 --host-device=pci_0000_00_1f_6
+
+# may need to add PCI device AFTER first boot using virt-manager - else dhcp from pci passtrhough nic writes /etc/resolv.conf grr...
+
+oc get csr -o name | xargs oc adm certificate approve
+
+```
+
+Create cluster network additionla config, using static ip address here (dhcp did not work for me)
+```
+oc patch networks.operator.openshift.io cluster --type json -p '
+[{
+   "op": "add",
+   "path": "/spec/additionalNetworks",
+   "value": []
+ },{
+   "op": "add",
+   "path": "/spec/additionalNetworks/0",
+   "value": {
+     name: "pci-device-conf",
+     namespace: "multus",
+     type: "Raw",
+     rawCNIConfig: "{
+       \"cniVersion\": \"0.3.1\",
+       \"type\": \"host-device\",
+       \"device\": \"ens10\",
+       \"ipam\": {\"type\": \"static\",\"addresses\": [{\"address\": \"192.168.86.112/24\",\"gateway\": \"192.168.86.1\"}]}
+     }"
+   }
+ }
+]'
+```
+
+Now create pod
+```
+cat <<EOF | oc apply -f -
+apiVersion: v1
+kind: Pod
+metadata:
+  name: samplepod2
+  namespace: multus
+  annotations:
+    k8s.v1.cni.cncf.io/networks: pci-device-conf
+spec:
+  containers:
+  - name: samplepod2
+    command: ["/bin/bash", "-c", "sleep infinity"]
+    image: centos/tools
+EOF
+```
+
+And check interfaces
+```
+oc exec -it samplepod2 -- ip -4 addr
+1: lo: <LOOPBACK,UP,LOWER_UP> mtu 65536 qdisc noqueue state UNKNOWN group default qlen 1000
+    inet 127.0.0.1/8 scope host lo
+       valid_lft forever preferred_lft forever
+3: eth0@if125: <BROADCAST,MULTICAST,UP,LOWER_UP> mtu 1450 qdisc noqueue state UP group default  link-netnsid 0
+    inet 10.129.2.113/23 brd 10.129.3.255 scope global eth0
+       valid_lft forever preferred_lft forever
+4: net1: <BROADCAST,MULTICAST,UP,LOWER_UP> mtu 1500 qdisc fq_codel state UP group default qlen 1000
+    inet 192.168.86.112/24 brd 192.168.86.255 scope global net1
+       valid_lft forever preferred_lft forever
+```
+
+Make sure your second nic network does not clash with internal networks in OpenShift.
