@@ -22,7 +22,7 @@ foreach my $line (<READ>) {
     print WRITEM "$source=$dbase/$dimage\n";
     print WRITEI "  - mirrors:
     - $dbase/$dimage
-    soure: $source\n";
+    source: $source\n";
 }
 close READ;
 close WRITEM;
