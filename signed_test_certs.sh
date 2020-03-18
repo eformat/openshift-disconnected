@@ -80,11 +80,11 @@ if [[ $1 == "-i" ]]; then
 fi
 
 echo "Signing a Server Certificate"
-( echo N ; echo ; echo N ) | certutil -C -m $INDEX -i $CERT_LOCAL/tls/server.csr -o $CERT_LOCAL/tls/certs/server.crt -c "$SIGNING_AUTHORITY" -a -d $DB_LOCAL -2 -z $CERT_LOCAL/tls/.noise.txt -f $CERT_LOCAL/tls/.pwdfile.txt
+( echo N ; echo ; echo N ) | certutil -C -m $INDEX -i $CERT_LOCAL/tls/server.csr -o $CERT_LOCAL/tls/certs/server.crt -c "$SIGNING_AUTHORITY" -a -v 36 -d $DB_LOCAL -2 -z $CERT_LOCAL/tls/.noise.txt -f $CERT_LOCAL/tls/.pwdfile.txt
 # This is here to incrament the index. 
 ((INDEX+=1))
 echo "Signing a Client Certificate"
-( echo N ; echo ; echo N ) | certutil -C -m $INDEX -i $CERT_LOCAL/tls/client.csr -o $CERT_LOCAL/tls/certs/client.crt -c "$SIGNING_AUTHORITY" -a -d $DB_LOCAL -2 -z $CERT_LOCAL/tls/.noise.txt -f $CERT_LOCAL/tls/.pwdfile.txt
+( echo N ; echo ; echo N ) | certutil -C -m $INDEX -i $CERT_LOCAL/tls/client.csr -o $CERT_LOCAL/tls/certs/client.crt -c "$SIGNING_AUTHORITY" -a -v 36 -d $DB_LOCAL -2 -z $CERT_LOCAL/tls/.noise.txt -f $CERT_LOCAL/tls/.pwdfile.txt
 # This is here to incrament the index. However at this point its not needed unless other certificates will be issued.  
 ((INDEX+=1))
 
