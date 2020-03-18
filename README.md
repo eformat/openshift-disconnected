@@ -1261,6 +1261,7 @@ items:
       name: certified-operators
 ```
 
+`THIS FAILS for QUAY`
 Extract the contents of your custom Operator catalog image to generate manifests required for mirroring
 ```
 oc adm catalog mirror \
@@ -1289,6 +1290,20 @@ oc image mirror -f ./redhat-operators-manifests/mapping.txt
 Apply the manifests (CatalogSource)
 ```
 oc apply -f ./redhat-operators-manifests/imageContentSourcePolicy.yaml
+```
+
+`HACK`
+Flattening for Quay and oc mirror image broken
+```
+oc adm catalog mirror --manifests-only \
+    bastion.hosts.eformat.me:443/openshift/redhat-operators:v1 \
+    bastion.hosts.eformat.me:443/openshift
+
+cd ./redhat-operators-manifests
+./flatten.pl mapping.txt
+
+    while read line; do echo $line && skopeo copy --all $line; done < /tmp/mapping-skopeo.txt
+    oc apply -f /tmp/imageContentSourcePolicy-flat.yaml
 ```
 
 Create a CatalogSource object that references your catalog image.
